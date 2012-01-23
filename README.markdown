@@ -1,3 +1,6 @@
+An ANTLR grammar that generates a parser able to parse PCRE-like regular expressions
+and produce an abstract syntax tree (AST) of such expressions.
+
 To run the `Main` class, first generate a lexer and parser from the ANTLR grammar
 file located in `src/grammar`. This can be done by executing the ant target:
 
@@ -7,7 +10,7 @@ Then `Main` can be executed, by calling:
 
     ant run
 
-which parses the regex `^(?!x)\w*([a-z\D]++)\1?(?<=xy?+)$` and prints the following output:
+which parses the regex `^(?!x)\w*([a-z\D]++)\1?(?<=xy?+)$` and prints the following AST:
 
     REGEX
       ATOMS
