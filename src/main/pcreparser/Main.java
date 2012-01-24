@@ -20,7 +20,8 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        PCRELexer lexer = new PCRELexer(new ANTLRStringStream("(?:y|z)"));
+        String test = "(a|b)[a-c\\d]??[^\\w7-9]\\b\\Z\\Q.*+?\\E\\1\\w\\D\\p{XDigit}.(?ism)|(?:X)(?-x:Y)(?s-mi:Z)(?>A|BB)(?!1)(?=2)(?<!3)(?<=4)";
+        PCRELexer lexer = new PCRELexer(new ANTLRStringStream("(?:X)(?xms-smx:X)(?-smx:X)(?xms-:X)(?s-x:X)"));
         PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
         CommonTree ast = parser.parse().tree;
         walk(ast, parser.getTokenNames(), 0);

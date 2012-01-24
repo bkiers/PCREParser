@@ -1,3 +1,4 @@
+
 grammar PCRE;
 
 options {
@@ -29,6 +30,7 @@ tokens {
   POSITIVE_LOOK_BEHIND;
   NEGATIVE_LOOK_BEHIND;
   FLAGS;
+  CHARS;
   ENABLE;
   DISABLE;
   DOT;
@@ -47,213 +49,230 @@ tokens {
 
 // parser rules
 parse
-  :  regexAlts EOF -> ^(REGEX regexAlts)
-  ;
+ : regexAlts EOF -> ^(REGEX regexAlts)
+ ;
 
 regexAlts
-  :  atoms (Or^ atoms)*
-  ;
+ : atoms (Or^ atoms)*
+ ;
 
 atoms
-  :  regexAtom* -> ^(ATOMS regexAtom*)
-  ;
+ : regexAtom* -> ^(ATOMS regexAtom*)
+ ;
 
 regexAtom
-  :  unit quantifier? -> ^(ATOM unit quantifier?)
-  ;
+ : unit quantifier? -> ^(ATOM unit quantifier?)
+ ;
 
 unit
-  :  charClass
-  |  singleChar
-  |  boundaryMatch
-  |  quotation
-  |  backReference
-  |  group
-  |  ShorthandCharacterClass
-  |  PosixCharacterClass
-  |  Dot
-  ;
+ : charClass
+ | singleChar
+ | boundaryMatch
+ | quotation
+ | backReference
+ | group
+ | ShorthandCharacterClass
+ | PosixCharacterClass
+ | Dot
+ ;
 
 quantifier
-  :  (greedy -> ^(GREEDY greedy))
-     ('+'    -> ^(POSSESSIVE greedy)
-     |'?'    -> ^(RELUCTANT greedy)
-     )?
-  ;
+ : (greedy -> ^(GREEDY greedy))
+   ('+'    -> ^(POSSESSIVE greedy)
+   |'?'    -> ^(RELUCTANT greedy)
+   )?
+ ;
 
 greedy
-  :  '+'            -> ^(MIN_MAX INT["1"] INT["2147483647"])
-  |  '*'            -> ^(MIN_MAX INT["0"] INT["2147483647"])
-  |  '?'            -> ^(MIN_MAX INT["0"] INT["1"])
-  |  '{' (a=integer -> ^(MIN_MAX INT[$a.text] INT[$a.text]))
-     (
-       (','         -> ^(MIN_MAX INT[$a.text] INT["2147483647"]))
-       (b=integer   -> ^(MIN_MAX INT[$a.text] INT[$b.text]))?
-     )? 
-     '}'
-  ;
+ : '+'            -> ^(MIN_MAX INT["1"] INT["2147483647"])
+ | '*'            -> ^(MIN_MAX INT["0"] INT["2147483647"])
+ | '?'            -> ^(MIN_MAX INT["0"] INT["1"])
+ | '{' (a=integer -> ^(MIN_MAX INT[$a.text] INT[$a.text]))
+   (
+     (','         -> ^(MIN_MAX INT[$a.text] INT["2147483647"]))
+     (b=integer   -> ^(MIN_MAX INT[$a.text] INT[$b.text]))?
+   )? 
+   '}'
+ ;
 
 charClass
-  :  '[' (('^')=> '^' charClassAtom+ ']' -> ^(NEG_CHAR_CLASS charClassAtom+)
-         |        charClassAtom+ ']'     -> ^(CHAR_CLASS charClassAtom+)
-         )
-  ;
+ : '[' (('^')=> '^' charClassAtom+ ']' -> ^(NEG_CHAR_CLASS charClassAtom+)
+       |        charClassAtom+ ']'     -> ^(CHAR_CLASS charClassAtom+)
+       )
+ ;
 
 charClassAtom
-  :  (charClassSingleChar '-' charClassSingleChar)=> 
-     charClassSingleChar '-' charClassSingleChar -> ^(RANGE charClassSingleChar charClassSingleChar)
-  |  quotation
-  |  ShorthandCharacterClass
-  |  BoundaryMatch
-  |  PosixCharacterClass
-  |  charClassSingleChar
-  ;
+ : (charClassSingleChar '-' charClassSingleChar)=> 
+   charClassSingleChar '-' charClassSingleChar -> ^(RANGE charClassSingleChar charClassSingleChar)
+ | quotation
+ | ShorthandCharacterClass
+ | BoundaryMatch
+ | PosixCharacterClass
+ | charClassSingleChar
+ ;
 
 charClassSingleChar
-  :  charClassEscape
-  |  EscapeSequence
-  |  OctalNumber
-  |  SmallHexNumber
-  |  UnicodeChar
-  |  Or
-  |  Caret
-  |  Hyphen
-  |  Colon
-  |  Dollar
-  |  SquareBracketStart
-  |  RoundBracketStart
-  |  RoundBracketEnd
-  |  CurlyBracketStart
-  |  CurlyBracketEnd
-  |  Equals
-  |  LessThan
-  |  GreaterThan
-  |  ExclamationMark
-  |  Comma
-  |  Plus
-  |  Star
-  |  QuestionMark
-  |  Dot
-  |  Digit
-  |  OtherChar
-  ;
+ : charClassEscape
+ | EscapeSequence
+ | OctalNumber
+ | SmallHexNumber
+ | UnicodeChar
+ | Or
+ | Caret
+ | Hyphen
+ | Colon
+ | Dollar
+ | SquareBracketStart
+ | RoundBracketStart
+ | RoundBracketEnd
+ | CurlyBracketStart
+ | CurlyBracketEnd
+ | Equals
+ | LessThan
+ | GreaterThan
+ | ExclamationMark
+ | Comma
+ | Plus
+ | Star
+ | QuestionMark
+ | Dot
+ | Digit
+ | OtherChar
+ ;
 
 charClassEscape
-  :  '\\' ('\\' | '^' | ']' | '-')
-  ;
+ : Escape ( Escape         
+          | Caret 
+          | SquareBracketEnd 
+          | Hyphen
+          )
+ ;
 
 singleChar
-  :  regexEscape
-  |  EscapeSequence
-  |  OctalNumber
-  |  SmallHexNumber
-  |  UnicodeChar
-  |  Hyphen
-  |  Colon
-  |  SquareBracketEnd
-  |  CurlyBracketEnd
-  |  Equals
-  |  LessThan
-  |  GreaterThan
-  |  ExclamationMark
-  |  Comma
-  |  Digit
-  |  OtherChar
-  ;
+ : regexEscape
+ | EscapeSequence
+ | OctalNumber
+ | SmallHexNumber
+ | UnicodeChar
+ | Hyphen
+ | Colon
+ | SquareBracketEnd
+ | CurlyBracketEnd
+ | Equals
+ | LessThan
+ | GreaterThan
+ | ExclamationMark
+ | Comma
+ | Digit
+ | OtherChar
+ ;
 
 regexEscape
-  :  '\\' ('\\' | '|' | '^' | '$' | '[' | '(' | ')' | '{' | '}' | '+' | '*' | '?' | '.')
-  ;
+ : Escape ( Escape 
+          | Or 
+          | Caret 
+          | Dollar 
+          | SquareBracketStart 
+          | RoundBracketStart 
+          | RoundBracketEnd 
+          | CurlyBracketStart 
+          | CurlyBracketEnd 
+          | Plus
+          | Star 
+          | QuestionMark 
+          | Dot
+          )
+ ;
 
 boundaryMatch
-  :  Caret
-  |  Dollar
-  |  BoundaryMatch
-  ;
+ : Caret
+ | Dollar
+ | BoundaryMatch
+ ;
 
 backReference
-  :  '\\' integer -> ^(BACK_REFERENCE integer)
-  ;
+ : '\\' integer -> ^(BACK_REFERENCE integer)
+ ;
 
 group
-  :  '(' 
-     ( '?' ( (flags               -> ^(FLAG_GROUP flags)
-             )? 
-             (':' regexAlts       -> ^(NON_CAPTURE_GROUP flags? regexAlts)
-             )?
-           | '>' regexAlts        -> ^(ATOMIC_GROUP regexAlts)
-           | '!' regexAlts        -> ^(NEGATIVE_LOOK_AHEAD regexAlts)
-           | '=' regexAlts        -> ^(POSITIVE_LOOK_AHEAD regexAlts)
-           | '<' ( '!' regexAlts  -> ^(NEGATIVE_LOOK_BEHIND regexAlts)
-                 | '=' regexAlts  -> ^(POSITIVE_LOOK_BEHIND regexAlts)
-                 )
-           )
-     | regexAlts                  -> ^(CAPTURE_GROUP regexAlts)
-     )
-     ')'
-  ;
+ : '(' 
+   ( '?' ( (flags               -> ^(FLAG_GROUP flags)
+           ) 
+           (':' regexAlts       -> ^(NON_CAPTURE_GROUP flags regexAlts)
+           )?
+         | ':' regexAlts        -> ^(NON_CAPTURE_GROUP ^(FLAGS ^(ENABLE) ^(DISABLE)) regexAlts)
+         | '>' regexAlts        -> ^(ATOMIC_GROUP regexAlts)
+         | '!' regexAlts        -> ^(NEGATIVE_LOOK_AHEAD regexAlts)
+         | '=' regexAlts        -> ^(POSITIVE_LOOK_AHEAD regexAlts)
+         | '<' ( '!' regexAlts  -> ^(NEGATIVE_LOOK_BEHIND regexAlts)
+               | '=' regexAlts  -> ^(POSITIVE_LOOK_BEHIND regexAlts)
+               )
+         )
+   | regexAlts                  -> ^(CAPTURE_GROUP regexAlts)
+   )
+   ')'
+ ;
 
 flags
-  :  (a=singleFlags     -> ^(FLAGS ^(ENABLE $a))) 
-     ('-' b=singleFlags -> ^(FLAGS ^(ENABLE $a) ^(DISABLE $b))
-     )?
-  ;
+ : a=singleFlags ('-' b=singleFlags?)? -> ^(FLAGS ^(ENABLE $a) ^(DISABLE $b?))
+ | '-' c=singleFlags                   -> ^(FLAGS ^(ENABLE)    ^(DISABLE $c))
+ ;
 
 singleFlags
-  :  OtherChar+
-  ;
+ : OtherChar+
+ ;
 
 quotation
-  :  QuotationStart innerQuotation QuotationEnd -> ^(QUOTATION innerQuotation)
-  ;
+ : QuotationStart innerQuotation QuotationEnd -> ^(QUOTATION innerQuotation)
+ ;
 
 innerQuotation
-  :  (~QuotationEnd)*
-  ;
+ : (~QuotationEnd)*
+ ;
 
 integer
-  :  (options{greedy=true;}: Digit)+
-  ;
+ : (options{greedy=true;}: Digit)+
+ ;
 
 // lexer rules
 
 QuotationStart
-  :  '\\Q'
-  ;
+ : '\\Q'
+ ;
 
 QuotationEnd
-  :  '\\E'
-  ;
+ : '\\E'
+ ;
 
 PosixCharacterClass
-  :  '\\p{' ('Lower' | 'Upper' | 'ASCII' | 'Alpha' | 'Digit' | 'Alnum' | 'Punct' | 'Graph' | 'Print' | 'Blank' | 'Cntrl' | 'XDigit' | 'Space') '}'
-  ;
+ : '\\p{' ('Lower' | 'Upper' | 'ASCII' | 'Alpha' | 'Digit' | 'Alnum' | 'Punct' | 'Graph' | 'Print' | 'Blank' | 'Cntrl' | 'XDigit' | 'Space') '}'
+ ;
 
 ShorthandCharacterClass
-  :  Escape ('d' | 'D' | 's' | 'S' | 'w' | 'W')
-  ;
+ : Escape ('d' | 'D' | 's' | 'S' | 'w' | 'W')
+ ;
 
 BoundaryMatch
-  :  Escape ('b' | 'B' | 'A' | 'Z' | 'z' | 'G')
-  ;
+ : Escape ('b' | 'B' | 'A' | 'Z' | 'z' | 'G')
+ ;
 
 OctalNumber
-  :  Escape '0' ( OctDigit? OctDigit 
-                | '0'..'3' OctDigit OctDigit
-                )
-  ;
+ : Escape '0' ( OctDigit? OctDigit 
+              | '0'..'3' OctDigit OctDigit
+              )
+ ;
 
 SmallHexNumber
-  :  Escape 'x' HexDigit HexDigit
-  ;
+ : Escape 'x' HexDigit HexDigit
+ ;
 
 UnicodeChar
-  :  Escape 'u' HexDigit HexDigit HexDigit HexDigit
-  ;
+ : Escape 'u' HexDigit HexDigit HexDigit HexDigit
+ ;
 
 EscapeSequence
-  :  Escape ('t' | 'n' | 'r' | 'f' | 'a' | 'e' | ~('a'..'z' | 'A'..'Z' | '0'..'9'))
-  ;
+ : Escape ('t' | 'n' | 'r' | 'f' | 'a' | 'e' | ~('a'..'z' | 'A'..'Z' | '0'..'9'))
+ ;
 
 Escape             : '\\';
 Or                 : '|';
