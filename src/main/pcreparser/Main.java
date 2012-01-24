@@ -24,7 +24,7 @@ public class Main {
         PCRELexer lexer = new PCRELexer(new ANTLRStringStream(test));
         PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
         CommonTree ast = parser.parse().tree;
-        walk(ast, parser.getTokenNames(), 0);
+        //walk(ast, parser.getTokenNames(), 0);
         PCREWalker walker = new PCREWalker(new CommonTreeNodeStream(ast));
         walker.walk();
     }
