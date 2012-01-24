@@ -177,7 +177,7 @@ backReference
 
 group
   :  '(' 
-     ( '?' ( (flags                -> ^(FLAG_GROUP flags)
+     ( '?' ( (flags               -> ^(FLAG_GROUP flags)
              )? 
              (':' regexAlts       -> ^(NON_CAPTURE_GROUP flags? regexAlts)
              )?
