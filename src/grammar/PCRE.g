@@ -34,6 +34,7 @@ tokens {
   DOT;
   ATOM;
   ATOMS;
+  MIN_MAX;
 }
 
 @parser::header {
@@ -46,10 +47,10 @@ tokens {
 
 // parser rules
 parse
-  :  regexAtoms EOF -> ^(REGEX regexAtoms)
+  :  regexAlts EOF -> ^(REGEX regexAlts)
   ;
 
-regexAtoms
+regexAlts
   :  atoms (Or^ atoms)*
   ;
 
@@ -81,13 +82,13 @@ quantifier
   ;
 
 greedy
-  :  '+'            -> INT["1"] INT["2147483647"]
-  |  '*'            -> INT["0"] INT["2147483647"]
-  |  '?'            -> INT["0"] INT["1"]
-  |  '{' (a=integer -> INT[$a.text] INT[$a.text]) 
+  :  '+'            -> ^(MIN_MAX INT["1"] INT["2147483647"])
+  |  '*'            -> ^(MIN_MAX INT["0"] INT["2147483647"])
+  |  '?'            -> ^(MIN_MAX INT["0"] INT["1"])
+  |  '{' (a=integer -> ^(MIN_MAX INT[$a.text] INT[$a.text]))
      (
-       (','         -> INT[$a.text] INT["2147483647"])
-       (b=integer   -> INT[$a.text] INT[$b.text])?
+       (','         -> ^(MIN_MAX INT[$a.text] INT["2147483647"]))
+       (b=integer   -> ^(MIN_MAX INT[$a.text] INT[$b.text]))?
      )? 
      '}'
   ;
@@ -177,17 +178,17 @@ backReference
 group
   :  '(' 
      ( '?' ( (flags                -> ^(FLAG_GROUP flags)
-             ) 
-             (':' regexAtoms       -> ^(NON_CAPTURE_GROUP flags regexAtoms)
+             )? 
+             (':' regexAlts       -> ^(NON_CAPTURE_GROUP flags? regexAlts)
              )?
-           | '>' regexAtoms        -> ^(ATOMIC_GROUP regexAtoms)
-           | '!' regexAtoms        -> ^(NEGATIVE_LOOK_AHEAD regexAtoms)
-           | '=' regexAtoms        -> ^(POSITIVE_LOOK_AHEAD regexAtoms)
-           | '<' ( '!' regexAtoms  -> ^(NEGATIVE_LOOK_BEHIND regexAtoms)
-                 | '=' regexAtoms  -> ^(POSITIVE_LOOK_BEHIND regexAtoms)
+           | '>' regexAlts        -> ^(ATOMIC_GROUP regexAlts)
+           | '!' regexAlts        -> ^(NEGATIVE_LOOK_AHEAD regexAlts)
+           | '=' regexAlts        -> ^(POSITIVE_LOOK_AHEAD regexAlts)
+           | '<' ( '!' regexAlts  -> ^(NEGATIVE_LOOK_BEHIND regexAlts)
+                 | '=' regexAlts  -> ^(POSITIVE_LOOK_BEHIND regexAlts)
                  )
            )
-     | regexAtoms                  -> ^(CAPTURE_GROUP regexAtoms)
+     | regexAlts                  -> ^(CAPTURE_GROUP regexAlts)
      )
      ')'
   ;
@@ -199,7 +200,7 @@ flags
   ;
 
 singleFlags
-  :  OtherChar*
+  :  OtherChar+
   ;
 
 quotation

@@ -20,9 +20,11 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        PCRELexer lexer = new PCRELexer(new ANTLRStringStream("^(?!x)\\w*([a-z\\D]++)\\1?(?<=xy?+)$"));
+        PCRELexer lexer = new PCRELexer(new ANTLRStringStream("(?:y|z)"));
         PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
         CommonTree ast = parser.parse().tree;
         walk(ast, parser.getTokenNames(), 0);
+        //PCREWalker walker = new PCREWalker(new CommonTreeNodeStream(ast));
+        //walker.walk();
     }
 }
