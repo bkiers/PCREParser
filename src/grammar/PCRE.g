@@ -37,6 +37,7 @@ tokens {
   ATOM;
   ATOMS;
   MIN_MAX;
+  LITERAL;
 }
 
 @parser::header {
@@ -84,12 +85,12 @@ quantifier
  ;
 
 greedy
- : '+'            -> ^(MIN_MAX INT["1"] INT["2147483647"])
- | '*'            -> ^(MIN_MAX INT["0"] INT["2147483647"])
+ : '+'            -> ^(MIN_MAX INT["1"] INT[String.valueOf(Integer.MAX_VALUE)])
+ | '*'            -> ^(MIN_MAX INT["0"] INT[String.valueOf(Integer.MAX_VALUE)])
  | '?'            -> ^(MIN_MAX INT["0"] INT["1"])
  | '{' (a=integer -> ^(MIN_MAX INT[$a.text] INT[$a.text]))
    (
-     (','         -> ^(MIN_MAX INT[$a.text] INT["2147483647"]))
+     (','         -> ^(MIN_MAX INT[$a.text] INT[String.valueOf(Integer.MAX_VALUE)]))
      (b=integer   -> ^(MIN_MAX INT[$a.text] INT[$b.text]))?
    )? 
    '}'
@@ -141,10 +142,10 @@ charClassSingleChar
  ;
 
 charClassEscape
- : Escape ( Escape         
-          | Caret 
-          | SquareBracketEnd 
-          | Hyphen
+ : Escape ( Escape           -> LITERAL["\\"]
+          | Caret            -> LITERAL["^"]
+          | SquareBracketEnd -> LITERAL["]"]
+          | Hyphen           -> LITERAL["-"]
           )
  ;
 
@@ -168,19 +169,19 @@ singleChar
  ;
 
 regexEscape
- : Escape ( Escape 
-          | Or 
-          | Caret 
-          | Dollar 
-          | SquareBracketStart 
-          | RoundBracketStart 
-          | RoundBracketEnd 
-          | CurlyBracketStart 
-          | CurlyBracketEnd 
-          | Plus
-          | Star 
-          | QuestionMark 
-          | Dot
+ : Escape ( Escape             -> LITERAL["\\"]
+          | Or                 -> LITERAL["|"]
+          | Caret              -> LITERAL["^"]
+          | Dollar             -> LITERAL["$"]
+          | SquareBracketStart -> LITERAL["["]
+          | RoundBracketStart  -> LITERAL["("]
+          | RoundBracketEnd    -> LITERAL[")"]
+          | CurlyBracketStart  -> LITERAL["{"]
+          | CurlyBracketEnd    -> LITERAL["}"]
+          | Plus               -> LITERAL["+"]
+          | Star               -> LITERAL["*"]
+          | QuestionMark       -> LITERAL["?"]
+          | Dot                -> LITERAL["."]
           )
  ;
 
@@ -235,17 +236,16 @@ integer
  ;
 
 // lexer rules
-
 QuotationStart
- : '\\Q'
+ : Escape 'Q'
  ;
 
 QuotationEnd
- : '\\E'
+ : Escape 'E'
  ;
 
 PosixCharacterClass
- : '\\p{' ('Lower' | 'Upper' | 'ASCII' | 'Alpha' | 'Digit' | 'Alnum' | 'Punct' | 'Graph' | 'Print' | 'Blank' | 'Cntrl' | 'XDigit' | 'Space') '}'
+ : Escape 'p{' ('Lower' | 'Upper' | 'ASCII' | 'Alpha' | 'Digit' | 'Alnum' | 'Punct' | 'Graph' | 'Print' | 'Blank' | 'Cntrl' | 'XDigit' | 'Space') '}'
  ;
 
 ShorthandCharacterClass
