@@ -138,8 +138,14 @@ greedy
  ;
 
 charClass
- : '[' (('^')=> '^' charClassAtom+ ']' -> ^(NEG_CHAR_CLASS charClassAtom+)
-       |        charClassAtom+ ']'     -> ^(CHAR_CLASS charClassAtom+)
+ : '[' (('^')=> '^' ( SquareBracketEnd charClassAtom* -> ^(NEG_CHAR_CLASS LITERAL["]"] charClassAtom*)
+                    | charClassAtom+                  -> ^(NEG_CHAR_CLASS charClassAtom+)
+                    )
+                    ']'
+       |            ( SquareBracketEnd charClassAtom* -> ^(CHAR_CLASS LITERAL["]"] charClassAtom*)
+                    | charClassAtom+                  -> ^(CHAR_CLASS charClassAtom+)
+                    )
+                    ']'
        )
  ;
 

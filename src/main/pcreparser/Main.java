@@ -30,6 +30,8 @@ package pcreparser;
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
 
+import java.util.regex.Pattern;
+
 public class Main {
 
     private static void walk(CommonTree tree, String[] tokenNames, int indent) {
@@ -53,9 +55,11 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        String test = "(?-mx)(?s)(?m-sx)";
+        String regex = "[^]a]";
 
-        PCRELexer lexer = new PCRELexer(new ANTLRStringStream(test));
+        System.out.println("a".matches(regex));
+
+        PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
         PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
 
         CommonTree ast = parser.parse().tree;
