@@ -48,6 +48,20 @@ tokens {
   package pcreparser;
 }
 
+@parser::members {
+  @Override
+  public void reportError(RecognitionException e) {
+    throw new RuntimeException(e);
+  }
+}
+
+@lexer::members {
+  @Override
+  public void reportError(RecognitionException e) {
+    throw new RuntimeException(e);
+  }
+}
+
 // parser rules
 parse
  : regexAlts EOF -> ^(REGEX regexAlts)
@@ -272,43 +286,33 @@ Quotation
  : '\\Q' .* '\\E' {setText($text.substring(2, $text.length() - 2));}
  ;
 
-PosixCharacterClass
- : Escape 'p{' ( 'Lower'  {$type=PosixCharacterClassLower;}
-               | 'Upper'  {$type=PosixCharacterClassUpper;}
-               | 'ASCII'  {$type=PosixCharacterClassASCII;}
-               | 'Alpha'  {$type=PosixCharacterClassAlpha;}
-               | 'Digit'  {$type=PosixCharacterClassDigit;}
-               | 'Alnum'  {$type=PosixCharacterClassAlnum;}
-               | 'Punct'  {$type=PosixCharacterClassPunct;}
-               | 'Graph'  {$type=PosixCharacterClassGraph;}
-               | 'Print'  {$type=PosixCharacterClassPrint;}
-               | 'Blank'  {$type=PosixCharacterClassBlank;}
-               | 'Cntrl'  {$type=PosixCharacterClassCntrl;}
-               | 'XDigit' {$type=PosixCharacterClassXDigit;}
-               | 'Space'  {$type=PosixCharacterClassSpace;}
-               )
-          '}'
- ;
+PosixCharacterClassLower  : 'p{Lower}';
+PosixCharacterClassUpper  : 'p{Upper}';
+PosixCharacterClassASCII  : 'p{ASCII}';
+PosixCharacterClassAlpha  : 'p{Alpha}';
+PosixCharacterClassDigit  : 'p{Digit}';
+PosixCharacterClassAlnum  : 'p{Alnum}';
+PosixCharacterClassPunct  : 'p{Punct}';
+PosixCharacterClassGraph  : 'p{Graph}';
+PosixCharacterClassPrint  : 'p{Print}';
+PosixCharacterClassBlank  : 'p{Blank}';
+PosixCharacterClassCntrl  : 'p{Cntrl}';
+PosixCharacterClassXDigit : 'p{XDigit}';
+PosixCharacterClassSpace  : 'p{Space}';
 
-ShorthandCharacterClass
- : Escape ( 'd' {$type=ShorthandCharacterClassDigit;}
-          | 'D' {$type=ShorthandCharacterClassNonDigit;}
-          | 's' {$type=ShorthandCharacterClassSpace;}
-          | 'S' {$type=ShorthandCharacterClassNonSpace;}
-          | 'w' {$type=ShorthandCharacterClassWord;}
-          | 'W' {$type=ShorthandCharacterClassNonWord;}
-          )
- ;
+ShorthandCharacterClassDigit    : '\\d';
+ShorthandCharacterClassNonDigit : '\\D';
+ShorthandCharacterClassSpace    : '\\s';
+ShorthandCharacterClassNonSpace : '\\S';
+ShorthandCharacterClassWord     : '\\w';
+ShorthandCharacterClassNonWord  : '\\W';
 
-BoundaryMatch
- : Escape ( 'b' {$type=WordBoundary;}
-          | 'B' {$type=NonWordBoundary;}
-          | 'A' {$type=StartInput;}
-          | 'Z' {$type=EndInputBeforeFinalTerminator;}
-          | 'z' {$type=EndInput;}
-          | 'G' {$type=EndPreviousMatch;}
-          )
- ;
+WordBoundary                  : '\\b';
+NonWordBoundary               : '\\B';
+StartInput                    : '\\A';
+EndInputBeforeFinalTerminator : '\\Z';
+EndInput                      : '\\z';
+EndPreviousMatch              : '\\G';
 
 OctalChar
  : Escape '0' ('0'..'3' OctDigit OctDigit | OctDigit? OctDigit)
@@ -374,31 +378,3 @@ OtherChar          :  . ;
 fragment NonAlphaNum : ~('a'..'z' | 'A'..'Z' | '0'..'9');
 fragment OctDigit    : '0'..'7';
 fragment HexDigit    : ('0'..'9' | 'a'..'f' | 'A'..'F');
-
-fragment WordBoundary : ;
-fragment NonWordBoundary : ;
-fragment StartInput : ;
-fragment EndInputBeforeFinalTerminator : ;
-fragment EndInput : ;
-fragment EndPreviousMatch : ;
-
-fragment ShorthandCharacterClassDigit : ;
-fragment ShorthandCharacterClassNonDigit : ;
-fragment ShorthandCharacterClassSpace : ;
-fragment ShorthandCharacterClassNonSpace : ;
-fragment ShorthandCharacterClassWord : ;
-fragment ShorthandCharacterClassNonWord : ;
-
-fragment PosixCharacterClassLower : ;
-fragment PosixCharacterClassUpper : ;
-fragment PosixCharacterClassASCII : ;
-fragment PosixCharacterClassAlpha : ;
-fragment PosixCharacterClassDigit : ;
-fragment PosixCharacterClassAlnum : ;
-fragment PosixCharacterClassPunct : ;
-fragment PosixCharacterClassGraph : ;
-fragment PosixCharacterClassPrint : ;
-fragment PosixCharacterClassBlank : ;
-fragment PosixCharacterClassCntrl : ;
-fragment PosixCharacterClassXDigit : ;
-fragment PosixCharacterClassSpace : ;
