@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  *
- * Project      : PCRE Parser, an ANTRL grammar for PCRE
+ * Project      : PCRE Parser, an ANTLR grammar for PCRE
  * Developed by : Bart Kiers, bart@big-o.nl
  */
 grammar PCRE;
