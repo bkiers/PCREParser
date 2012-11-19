@@ -90,11 +90,11 @@ group
  ;
 
 flags
- : ^(FLAGS ^(ENABLE singleFlags) ^(DISABLE singleFlags))
+ : ^(FLAGS ^(ENABLE singleFlags?) ^(DISABLE singleFlags?))
  ;
 
 singleFlags
- : OtherChar*
+ : FLAG+
  ;
 
 shorthandCharacterClass

@@ -37,6 +37,7 @@ tokens {
   ATOMS;
   MIN_MAX;
   LITERAL;
+  FLAG;
 }
 
 @parser::header {
@@ -230,7 +231,11 @@ flags
  ;
 
 singleFlags
- : OtherChar+
+ : singleFlag+
+ ;
+
+singleFlag
+ : OtherChar -> FLAG[$OtherChar.text]
  ;
 
 shorthandCharacterClass
