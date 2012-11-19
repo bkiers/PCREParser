@@ -37,11 +37,11 @@ options {
 }
 
 walk
- : ^(REGEX regexAlts)
+ : regexAlts
  ;
 
 regexAlts
- : ^(Or regexAlts regexAlts)
+ : ^(OR regexAlts regexAlts)
  | atoms
  ;
 

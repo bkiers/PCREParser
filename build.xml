@@ -7,12 +7,12 @@
     <property name="combined.grammar" value="src/grammar/PCRE.g" />
     <property name="tree.grammar"     value="src/grammar/PCREWalker.g" />
     <property name="package"          value="pcreparser" />
-    <property name="main.build.dir"   value="build/main" />
+    <property name="build.dir"        value="build" />
+    <property name="main.build.dir"   value="${build.dir}/main" />
     <property name="main.src.dir"     value="src/main" />
-    <property name="test.build.dir"   value="build/test" />
+    <property name="test.build.dir"   value="${build.dir}/test" />
     <property name="test.src.dir"     value="src/test" />
-    <property name="release.name"     value="${ant.project.name}-${version}"/>
-    <property name="jar.location"     value="${main.build.dir}/${release.name}.jar"/>
+    <property name="jar.name"         value="${ant.project.name}-${version}.jar"/>
     <property name="author"           value="Bart Kiers, bart@big-o.nl" />
 
     <path id="classpath">
@@ -54,7 +54,7 @@
 
     <target name="jar" depends="generate">
         <tstamp/>
-        <jar destfile="${jar.location}" whenmanifestonly="fail">
+        <jar destfile="${build.dir}/${jar.name}" whenmanifestonly="fail">
             <fileset dir="${main.build.dir}">
                 <exclude name="**/*.html"/>
             </fileset>

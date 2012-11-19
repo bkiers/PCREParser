@@ -33,7 +33,6 @@ options {
 }
 
 tokens {
-  REGEX;
   ATOM;
   DOT;
   OR;
@@ -91,12 +90,19 @@ tokens {
 
 // parser rules
 parse
- : regexAlts EOF -> ^(REGEX regexAlts)
+ : regexAlts EOF -> regexAlts
    //(t=. {System.out.printf("\%-25s '\%s'\n", tokenNames[$t.type], $t.text);})* EOF
  ;
 
+/*
 regexAlts
- : atoms (Or^ atoms)*
+ : ^(Or atoms regexAlts)
+ | atoms
+ ;
+*/
+
+regexAlts
+ : (atoms -> atoms) ('|' a=atoms -> ^(OR $regexAlts $a))*
  ;
 
 atoms

@@ -30,44 +30,66 @@ package pcreparser;
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
 
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
 
-    private static void walk(CommonTree tree, String[] tokenNames, int indent) {
+    @SuppressWarnings("unchecked")
+    public static void walk(CommonTree tree, String[] tokenNames, StringBuilder builder) {
 
-        if(tree == null) {
-            return;
-        }
+        List<CommonTree> firstStack = new ArrayList<CommonTree>();
+        firstStack.add(tree);
 
-        for(int i = 0; i < indent; i++) {
-            System.out.print("  ");
-        }
+        List<List<CommonTree>> childListStack = new ArrayList<List<CommonTree>>();
+        childListStack.add(firstStack);
 
-        String tokenName = tokenNames[tree.getType()];
-        String tokenText = tree.getText();
+        while (!childListStack.isEmpty()) {
 
-        System.out.println(tokenName + (!tokenName.equals(tokenText) ? "='" + tree.getText() + "'" : ""));
+            List<CommonTree> childStack = childListStack.get(childListStack.size() - 1);
 
-        for(int i = 0; i < tree.getChildCount(); i++) {
-            walk((CommonTree)tree.getChild(i), tokenNames, indent + 1);
+            if (childStack.isEmpty()) {
+                childListStack.remove(childListStack.size() - 1);
+            }
+            else {
+                tree = childStack.remove(0);
+
+                String indent = "";
+
+                for (int i = 0; i < childListStack.size() - 1; i++) {
+                    indent += (childListStack.get(i).size() > 0) ? "|  " : "   ";
+                }
+
+                String tokenName = tokenNames[tree.getType()];
+                String tokenText = tree.getText();
+
+                builder.append(indent)
+                        .append(childStack.isEmpty() ? "'- " : "+- ")
+                        .append(tokenName)
+                        .append(!tokenName.equals(tokenText) ? "='" + tree.getText() + "'" : "")
+                        .append("\n");
+
+                if (tree.getChildCount() > 0) {
+                    childListStack.add(new ArrayList<CommonTree>((List<CommonTree>)tree.getChildren()));
+                }
+            }
         }
     }
 
     public static void main(String[] args) throws Exception {
-        String regex = "[^]a]";
-
-        System.out.println("a".matches(regex));
+        String regex = "^([^^$+]++)(?!!\\1)\\W*?$";
 
         PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
         PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
 
         CommonTree ast = parser.parse().tree;
 
-        walk(ast, parser.getTokenNames(), 0);
+        StringBuilder builder = new StringBuilder();
+        walk(ast, parser.getTokenNames(), builder);
+
+        System.out.println(builder);
 
         PCREWalker walker = new PCREWalker(new CommonTreeNodeStream(ast));
-
         walker.walk();
     }
 }
