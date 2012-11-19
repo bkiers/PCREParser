@@ -28,20 +28,23 @@ regexAtom
 
 unit
  : charClass
- | singleChar
  | boundaryMatch
- | quotation
  | backReference
  | group
- | ShorthandCharacterClass
- | PosixCharacterClass
+ | shorthandCharacterClass
+ | posixCharacterClass
  | Dot
+ | LITERAL
  ;
 
 quantifier
- : ^(GREEDY ^(MIN_MAX INT INT))
- | ^(POSSESSIVE ^(MIN_MAX INT INT))
- | ^(RELUCTANT ^(MIN_MAX INT INT))
+ : ^(GREEDY greedy)
+ | ^(POSSESSIVE greedy)
+ | ^(RELUCTANT greedy)
+ ;
+
+greedy
+ : ^(MIN_MAX INT INT)
  ;
 
 charClass
@@ -50,66 +53,25 @@ charClass
  ;
 
 charClassAtom
- : ^(RANGE charClassSingleChar charClassSingleChar)
- | quotation
- | ShorthandCharacterClass
- | BoundaryMatch
- | PosixCharacterClass
- | charClassSingleChar
+ : charClassRange
+ | shorthandCharacterClass
+ | posixCharacterClass
+ | LITERAL
  ;
 
-charClassSingleChar
- : LITERAL
- | EscapeSequence
- | OctalNumber
- | SmallHexNumber
- | UnicodeChar
- | Or
- | Caret
- | Hyphen
- | Colon
- | Dollar
- | SquareBracketStart
- | RoundBracketStart
- | RoundBracketEnd
- | CurlyBracketStart
- | CurlyBracketEnd
- | Equals
- | LessThan
- | GreaterThan
- | ExclamationMark
- | Comma
- | Plus
- | Star
- | QuestionMark
- | Dot
- | Digit
- | OtherChar
- ;
-
-singleChar
- : LITERAL
- | EscapeSequence
- | OctalNumber
- | SmallHexNumber
- | UnicodeChar
- | Hyphen
- | Colon
- | SquareBracketEnd
- | CurlyBracketEnd
- | Equals
- | LessThan
- | GreaterThan
- | ExclamationMark
- | Comma
- | Digit
- | OtherChar
+charClassRange
+ : ^(RANGE LITERAL LITERAL)
  ;
 
 boundaryMatch
- : Caret
- | Dollar
- | BoundaryMatch
+ : BeginLine
+ | EndLine
+ | WordBoundary
+ | NonWordBoundary
+ | StartInput
+ | EndInputBeforeFinalTerminator
+ | EndInput
+ | EndPreviousMatch
  ;
 
 backReference
@@ -128,15 +90,36 @@ group
  ;
 
 flags
- : ^(FLAGS ^(ENABLE OtherChar*) ^(DISABLE OtherChar*))
+ : ^(FLAGS ^(ENABLE singleFlags) ^(DISABLE singleFlags))
  ;
 
-quotation
- : ^(QUOTATION innerQuotation)
+singleFlags
+ : OtherChar*
  ;
 
-innerQuotation
- : (~QuotationEnd)*
+shorthandCharacterClass
+ : ShorthandCharacterClassDigit
+ | ShorthandCharacterClassNonDigit
+ | ShorthandCharacterClassSpace
+ | ShorthandCharacterClassNonSpace
+ | ShorthandCharacterClassWord
+ | ShorthandCharacterClassNonWord
+ ;
+
+posixCharacterClass
+ : PosixCharacterClassLower
+ | PosixCharacterClassUpper
+ | PosixCharacterClassASCII
+ | PosixCharacterClassAlpha
+ | PosixCharacterClassDigit
+ | PosixCharacterClassAlnum
+ | PosixCharacterClassPunct
+ | PosixCharacterClassGraph
+ | PosixCharacterClassPrint
+ | PosixCharacterClassBlank
+ | PosixCharacterClassCntrl
+ | PosixCharacterClassXDigit
+ | PosixCharacterClassSpace
  ;
 
 integer

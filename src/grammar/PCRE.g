@@ -1,4 +1,3 @@
-
 grammar PCRE;
 
 options {
@@ -51,6 +50,7 @@ tokens {
 // parser rules
 parse
  : regexAlts EOF -> ^(REGEX regexAlts)
+   //(t=. {System.out.printf("\%-25s '\%s'\n", tokenNames[$t.type], $t.text);})* EOF
  ;
 
 regexAlts
@@ -67,21 +67,20 @@ regexAtom
 
 unit
  : charClass
- | singleChar
+ | singleCharLiteral
  | boundaryMatch
- | quotation
+ | Quotation               -> LITERAL[$Quotation.text]
  | backReference
  | group
- | ShorthandCharacterClass
- | PosixCharacterClass
+ | shorthandCharacterClass
+ | posixCharacterClass
  | Dot
  ;
 
 quantifier
- : (greedy -> ^(GREEDY greedy))
-   ('+'    -> ^(POSSESSIVE greedy)
-   |'?'    -> ^(RELUCTANT greedy)
-   )?
+ : (greedy -> ^(GREEDY greedy)) ('+' -> ^(POSSESSIVE greedy)
+                                |'?' -> ^(RELUCTANT greedy)
+                                )?
  ;
 
 greedy
@@ -103,26 +102,32 @@ charClass
  ;
 
 charClassAtom
- : (charClassSingleChar '-' charClassSingleChar)=> 
-   charClassSingleChar '-' charClassSingleChar -> ^(RANGE charClassSingleChar charClassSingleChar)
- | quotation
- | ShorthandCharacterClass
- | BoundaryMatch
- | PosixCharacterClass
- | charClassSingleChar
+ : (charClassRange)=> charClassRange 
+ |                    Quotation                  -> LITERAL[$Quotation.text]
+ |                    shorthandCharacterClass
+ |                    posixCharacterClass
+ |                    charClassSingleCharLiteral
+ ;
+
+charClassRange
+ : charClassSingleCharLiteral '-' charClassSingleCharLiteral -> ^(RANGE charClassSingleCharLiteral charClassSingleCharLiteral)
+ ;
+
+charClassSingleCharLiteral
+ : charClassEscapeLiteral -> charClassEscapeLiteral
+ | EscapeSequence         -> LITERAL[$EscapeSequence.text]
+ | OctalChar              -> LITERAL[$OctalChar.text]
+ | SmallHexChar           -> LITERAL[$SmallHexChar.text]
+ | UnicodeChar            -> LITERAL[$UnicodeChar.text]
+ | charClassSingleChar    -> LITERAL[$charClassSingleChar.text]
  ;
 
 charClassSingleChar
- : charClassEscape
- | EscapeSequence
- | OctalNumber
- | SmallHexNumber
- | UnicodeChar
- | Or
- | Caret
+ : Or
+ | BeginLine
  | Hyphen
  | Colon
- | Dollar
+ | EndLine
  | SquareBracketStart
  | RoundBracketStart
  | RoundBracketEnd
@@ -141,38 +146,38 @@ charClassSingleChar
  | OtherChar
  ;
 
-charClassEscape
+charClassEscapeLiteral
  : Escape ( Escape           -> LITERAL["\\"]
-          | Caret            -> LITERAL["^"]
+          | BeginLine        -> LITERAL["^"]
           | SquareBracketEnd -> LITERAL["]"]
           | Hyphen           -> LITERAL["-"]
           )
  ;
 
-singleChar
- : regexEscape
- | EscapeSequence
- | OctalNumber
- | SmallHexNumber
- | UnicodeChar
- | Hyphen
- | Colon
- | SquareBracketEnd
- | CurlyBracketEnd
- | Equals
- | LessThan
- | GreaterThan
- | ExclamationMark
- | Comma
- | Digit
- | OtherChar
+singleCharLiteral
+ : regexEscapeLiteral -> regexEscapeLiteral
+ | EscapeSequence     -> LITERAL[$EscapeSequence.text]
+ | OctalChar          -> LITERAL[$OctalChar.text]
+ | SmallHexChar       -> LITERAL[$SmallHexChar.text]
+ | UnicodeChar        -> LITERAL[$UnicodeChar.text]
+ | Hyphen             -> LITERAL["-"]
+ | Colon              -> LITERAL[":"]
+ | SquareBracketEnd   -> LITERAL["]"]
+ | CurlyBracketEnd    -> LITERAL["}"]
+ | Equals             -> LITERAL["="]
+ | LessThan           -> LITERAL["<"]
+ | GreaterThan        -> LITERAL[">"]
+ | ExclamationMark    -> LITERAL["!"]
+ | Comma              -> LITERAL[","]
+ | Digit              -> LITERAL[$Digit.text]
+ | OtherChar          -> LITERAL[$OtherChar.text]
  ;
 
-regexEscape
+regexEscapeLiteral
  : Escape ( Escape             -> LITERAL["\\"]
           | Or                 -> LITERAL["|"]
-          | Caret              -> LITERAL["^"]
-          | Dollar             -> LITERAL["$"]
+          | BeginLine          -> LITERAL["^"]
+          | EndLine            -> LITERAL["$"]
           | SquareBracketStart -> LITERAL["["]
           | RoundBracketStart  -> LITERAL["("]
           | RoundBracketEnd    -> LITERAL[")"]
@@ -186,9 +191,14 @@ regexEscape
  ;
 
 boundaryMatch
- : Caret
- | Dollar
- | BoundaryMatch
+ : BeginLine
+ | EndLine
+ | WordBoundary
+ | NonWordBoundary
+ | StartInput
+ | EndInputBeforeFinalTerminator
+ | EndInput
+ | EndPreviousMatch
  ;
 
 backReference
@@ -223,12 +233,29 @@ singleFlags
  : OtherChar+
  ;
 
-quotation
- : QuotationStart innerQuotation QuotationEnd -> ^(QUOTATION innerQuotation)
+shorthandCharacterClass
+ : ShorthandCharacterClassDigit
+ | ShorthandCharacterClassNonDigit
+ | ShorthandCharacterClassSpace
+ | ShorthandCharacterClassNonSpace
+ | ShorthandCharacterClassWord
+ | ShorthandCharacterClassNonWord
  ;
 
-innerQuotation
- : (~QuotationEnd)*
+posixCharacterClass
+ : PosixCharacterClassLower
+ | PosixCharacterClassUpper
+ | PosixCharacterClassASCII
+ | PosixCharacterClassAlpha
+ | PosixCharacterClassDigit
+ | PosixCharacterClassAlnum
+ | PosixCharacterClassPunct
+ | PosixCharacterClassGraph
+ | PosixCharacterClassPrint
+ | PosixCharacterClassBlank
+ | PosixCharacterClassCntrl
+ | PosixCharacterClassXDigit
+ | PosixCharacterClassSpace
  ;
 
 integer
@@ -236,50 +263,90 @@ integer
  ;
 
 // lexer rules
-QuotationStart
- : Escape 'Q'
- ;
-
-QuotationEnd
- : Escape 'E'
+Quotation
+ : '\\Q' .* '\\E' {setText($text.substring(2, $text.length() - 2));}
  ;
 
 PosixCharacterClass
- : Escape 'p{' ('Lower' | 'Upper' | 'ASCII' | 'Alpha' | 'Digit' | 'Alnum' | 'Punct' | 'Graph' | 'Print' | 'Blank' | 'Cntrl' | 'XDigit' | 'Space') '}'
+ : Escape 'p{' ( 'Lower'  {$type=PosixCharacterClassLower;}
+               | 'Upper'  {$type=PosixCharacterClassUpper;}
+               | 'ASCII'  {$type=PosixCharacterClassASCII;}
+               | 'Alpha'  {$type=PosixCharacterClassAlpha;}
+               | 'Digit'  {$type=PosixCharacterClassDigit;}
+               | 'Alnum'  {$type=PosixCharacterClassAlnum;}
+               | 'Punct'  {$type=PosixCharacterClassPunct;}
+               | 'Graph'  {$type=PosixCharacterClassGraph;}
+               | 'Print'  {$type=PosixCharacterClassPrint;}
+               | 'Blank'  {$type=PosixCharacterClassBlank;}
+               | 'Cntrl'  {$type=PosixCharacterClassCntrl;}
+               | 'XDigit' {$type=PosixCharacterClassXDigit;}
+               | 'Space'  {$type=PosixCharacterClassSpace;}
+               )
+          '}'
  ;
 
 ShorthandCharacterClass
- : Escape ('d' | 'D' | 's' | 'S' | 'w' | 'W')
+ : Escape ( 'd' {$type=ShorthandCharacterClassDigit;}
+          | 'D' {$type=ShorthandCharacterClassNonDigit;}
+          | 's' {$type=ShorthandCharacterClassSpace;}
+          | 'S' {$type=ShorthandCharacterClassNonSpace;}
+          | 'w' {$type=ShorthandCharacterClassWord;}
+          | 'W' {$type=ShorthandCharacterClassNonWord;}
+          )
  ;
 
 BoundaryMatch
- : Escape ('b' | 'B' | 'A' | 'Z' | 'z' | 'G')
+ : Escape ( 'b' {$type=WordBoundary;}
+          | 'B' {$type=NonWordBoundary;}
+          | 'A' {$type=StartInput;}
+          | 'Z' {$type=EndInputBeforeFinalTerminator;}
+          | 'z' {$type=EndInput;}
+          | 'G' {$type=EndPreviousMatch;}
+          )
  ;
 
-OctalNumber
- : Escape '0' ( OctDigit? OctDigit 
-              | '0'..'3' OctDigit OctDigit
-              )
+OctalChar
+ : Escape '0' ('0'..'3' OctDigit OctDigit | OctDigit? OctDigit)
+   {
+     int oct = Integer.valueOf($text.substring(2), 8);
+     setText(Character.valueOf((char)oct).toString());
+   }
  ;
 
-SmallHexNumber
+SmallHexChar
  : Escape 'x' HexDigit HexDigit
+   {
+     int hex = Integer.valueOf($text.substring(2), 16);
+     setText(Character.valueOf((char)hex).toString());
+   }
  ;
 
 UnicodeChar
  : Escape 'u' HexDigit HexDigit HexDigit HexDigit
+   {
+     int hex = Integer.valueOf($text.substring(2), 16);
+     char[] utf16 = Character.toChars(hex);
+     setText(new String(utf16));
+   }
  ;
 
 EscapeSequence
- : Escape ('t' | 'n' | 'r' | 'f' | 'a' | 'e' | ~('a'..'z' | 'A'..'Z' | '0'..'9'))
+ : Escape ( 't'         {setText("\t");}
+          | 'n'         {setText("\n");}
+          | 'r'         {setText("\r");}
+          | 'f'         {setText("\f");}
+          | 'a'         {setText("\u0007");}
+          | 'e'         {setText("\u001B");}
+          | NonAlphaNum {setText($NonAlphaNum.text);}
+          )
  ;
 
 Escape             : '\\';
 Or                 : '|';
 Hyphen             : '-';
-Caret              : '^';
+BeginLine          : '^';
 Colon              : ':';
-Dollar             : '$';
+EndLine            : '$';
 SquareBracketStart : '[';
 SquareBracketEnd   : ']';
 RoundBracketStart  : '(';
@@ -299,5 +366,34 @@ Digit              : '0'..'9';
 OtherChar          :  . ;
 
 // fragments
-fragment OctDigit : '0'..'7';
-fragment HexDigit : ('0'..'9' | 'a'..'f' | 'A'..'F');
+fragment NonAlphaNum : ~('a'..'z' | 'A'..'Z' | '0'..'9');
+fragment OctDigit    : '0'..'7';
+fragment HexDigit    : ('0'..'9' | 'a'..'f' | 'A'..'F');
+
+fragment WordBoundary : ;
+fragment NonWordBoundary : ;
+fragment StartInput : ;
+fragment EndInputBeforeFinalTerminator : ;
+fragment EndInput : ;
+fragment EndPreviousMatch : ;
+
+fragment ShorthandCharacterClassDigit : ;
+fragment ShorthandCharacterClassNonDigit : ;
+fragment ShorthandCharacterClassSpace : ;
+fragment ShorthandCharacterClassNonSpace : ;
+fragment ShorthandCharacterClassWord : ;
+fragment ShorthandCharacterClassNonWord : ;
+
+fragment PosixCharacterClassLower : ;
+fragment PosixCharacterClassUpper : ;
+fragment PosixCharacterClassASCII : ;
+fragment PosixCharacterClassAlpha : ;
+fragment PosixCharacterClassDigit : ;
+fragment PosixCharacterClassAlnum : ;
+fragment PosixCharacterClassPunct : ;
+fragment PosixCharacterClassGraph : ;
+fragment PosixCharacterClassPrint : ;
+fragment PosixCharacterClassBlank : ;
+fragment PosixCharacterClassCntrl : ;
+fragment PosixCharacterClassXDigit : ;
+fragment PosixCharacterClassSpace : ;
