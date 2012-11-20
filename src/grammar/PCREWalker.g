@@ -59,8 +59,8 @@ unit
  | backReference
  | group
  | shorthandCharacterClass
- | posixCharacterClass
  | UnicodeScriptOrBlock
+ | NegatedUnicodeScriptOrBlock
  | DOT
  | LITERAL
  ;
@@ -83,8 +83,8 @@ charClass
 charClassAtom
  : charClassRange
  | shorthandCharacterClass
- | posixCharacterClass
  | UnicodeScriptOrBlock
+ | NegatedUnicodeScriptOrBlock
  | LITERAL
  ;
 
@@ -134,20 +134,4 @@ shorthandCharacterClass
  | ShorthandCharacterClassNonSpace
  | ShorthandCharacterClassWord
  | ShorthandCharacterClassNonWord
- ;
-
-posixCharacterClass
- : PosixCharacterClassLower
- | PosixCharacterClassUpper
- | PosixCharacterClassASCII
- | PosixCharacterClassAlpha
- | PosixCharacterClassDigit
- | PosixCharacterClassAlnum
- | PosixCharacterClassPunct
- | PosixCharacterClassGraph
- | PosixCharacterClassPrint
- | PosixCharacterClassBlank
- | PosixCharacterClassCntrl
- | PosixCharacterClassXDigit
- | PosixCharacterClassSpace
  ;

@@ -64,7 +64,7 @@ public class Main {
                 String tokenText = tree.getText();
 
                 builder.append(indent)
-                        .append(childStack.isEmpty() ? "'- " : "+- ")
+                        .append(childStack.isEmpty() ? "'- " : "|- ")
                         .append(tokenName)
                         .append(!tokenName.equals(tokenText) ? "='" + tree.getText() + "'" : "")
                         .append("\n");

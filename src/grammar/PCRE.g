@@ -114,13 +114,13 @@ unit
  : charClass
  | singleCharLiteral
  | boundaryMatch
- | Quotation               -> LITERAL[$Quotation.text]
+ | Quotation                   -> LITERAL[$Quotation.text]
  | backReference
  | group
  | shorthandCharacterClass
- | posixCharacterClass
  | UnicodeScriptOrBlock
- | Dot                     -> DOT
+ | NegatedUnicodeScriptOrBlock
+ | Dot                         -> DOT
  ;
 
 quantifier
@@ -157,8 +157,8 @@ charClassAtom
  : (charClassRange)=> charClassRange 
  |                    Quotation                  -> LITERAL[$Quotation.text]
  |                    shorthandCharacterClass
- |                    posixCharacterClass
  |                    UnicodeScriptOrBlock
+ |                    NegatedUnicodeScriptOrBlock
  |                    charClassSingleCharLiteral
  ;
 
@@ -260,20 +260,20 @@ backReference
 
 group
  : '('
-   ( '?' ( (flags                 -> ^(FLAG_GROUP flags)
+   ( '?' ( (flags                   -> ^(FLAG_GROUP flags)
            ) 
-           (':' regexAlts         -> ^(NON_CAPTURE_GROUP flags regexAlts)
+           (':' regexAlts           -> ^(NON_CAPTURE_GROUP flags regexAlts)
            )?
-         | ':' regexAlts          -> ^(NON_CAPTURE_GROUP ^(FLAGS ^(ENABLE) ^(DISABLE)) regexAlts)
-         | '>' regexAlts          -> ^(ATOMIC_GROUP regexAlts)
-         | '!' regexAlts          -> ^(NEGATIVE_LOOK_AHEAD regexAlts)
-         | '=' regexAlts          -> ^(POSITIVE_LOOK_AHEAD regexAlts)
-         | '<' ( '!' regexAlts    -> ^(NEGATIVE_LOOK_BEHIND regexAlts)
-               | '=' regexAlts    -> ^(POSITIVE_LOOK_BEHIND regexAlts)
+         | ':' regexAlts            -> ^(NON_CAPTURE_GROUP ^(FLAGS ^(ENABLE) ^(DISABLE)) regexAlts)
+         | '>' regexAlts            -> ^(ATOMIC_GROUP regexAlts)
+         | '!' regexAlts            -> ^(NEGATIVE_LOOK_AHEAD regexAlts)
+         | '=' regexAlts            -> ^(POSITIVE_LOOK_AHEAD regexAlts)
+         | '<' ( '!' regexAlts      -> ^(NEGATIVE_LOOK_BEHIND regexAlts)
+               | '=' regexAlts      -> ^(POSITIVE_LOOK_BEHIND regexAlts)
+               | name '>' regexAlts -> ^(NAMED_CAPTURE_GROUP NAME[$name.text] regexAlts)
                )
-         | '<' name '>' regexAlts -> ^(NAMED_CAPTURE_GROUP NAME[$name.text] regexAlts)
          )
-   | regexAlts {groupCount++;}    -> ^(CAPTURE_GROUP regexAlts)
+   | regexAlts {groupCount++;}      -> ^(CAPTURE_GROUP regexAlts)
    )
    ')'
  ;
@@ -302,22 +302,6 @@ shorthandCharacterClass
  | ShorthandCharacterClassNonSpace
  | ShorthandCharacterClassWord
  | ShorthandCharacterClassNonWord
- ;
-
-posixCharacterClass
- : PosixCharacterClassLower
- | PosixCharacterClassUpper
- | PosixCharacterClassASCII
- | PosixCharacterClassAlpha
- | PosixCharacterClassDigit
- | PosixCharacterClassAlnum
- | PosixCharacterClassPunct
- | PosixCharacterClassGraph
- | PosixCharacterClassPrint
- | PosixCharacterClassBlank
- | PosixCharacterClassCntrl
- | PosixCharacterClassXDigit
- | PosixCharacterClassSpace
  ;
 
 integer
@@ -353,20 +337,8 @@ Quotation
  : '\\Q' .* '\\E' {setText($text.substring(2, $text.length() - 2));}
  ;
 
-PosixCharacterClassLower  : '\\p{Lower}';
-PosixCharacterClassUpper  : '\\p{Upper}';
-PosixCharacterClassASCII  : '\\p{ASCII}';
-PosixCharacterClassAlpha  : '\\p{Alpha}';
-PosixCharacterClassDigit  : '\\p{Digit}';
-PosixCharacterClassAlnum  : '\\p{Alnum}';
-PosixCharacterClassPunct  : '\\p{Punct}';
-PosixCharacterClassGraph  : '\\p{Graph}';
-PosixCharacterClassPrint  : '\\p{Print}';
-PosixCharacterClassBlank  : '\\p{Blank}';
-PosixCharacterClassCntrl  : '\\p{Cntrl}';
-PosixCharacterClassXDigit : '\\p{XDigit}';
-PosixCharacterClassSpace  : '\\p{Space}';
-UnicodeScriptOrBlock      : '\\p{' ('a'..'z' | 'A'..'Z' | '_')+ '}';
+UnicodeScriptOrBlock        : '\\p{' ('a'..'z' | 'A'..'Z' | '_')+ '}';
+NegatedUnicodeScriptOrBlock : '\\P{' ('a'..'z' | 'A'..'Z' | '_')+ '}';
 
 ShorthandCharacterClassDigit    : '\\d';
 ShorthandCharacterClassNonDigit : '\\D';
@@ -414,7 +386,6 @@ EscapeSequence
           | 'f'         {setText("\f");}
           | 'a'         {setText("\u0007");}
           | 'e'         {setText("\u001B");}
-          | NonAlphaNum {setText($NonAlphaNum.text);}
           )
  ;
 

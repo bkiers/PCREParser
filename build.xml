@@ -17,6 +17,7 @@
 
     <path id="classpath">
         <pathelement location="${main.build.dir}" />
+        <pathelement location="${test.build.dir}" />
         <fileset dir="lib">
             <include name="*.jar" />
         </fileset>
@@ -29,6 +30,9 @@
 
     <target name="compile" depends="init">
         <javac srcdir="${main.src.dir}" destdir="${main.build.dir}" includeantruntime="false">
+            <classpath refid="classpath" />
+        </javac>
+        <javac srcdir="${test.src.dir}" destdir="${test.build.dir}" includeantruntime="false">
             <classpath refid="classpath" />
         </javac>
     </target>
@@ -50,6 +54,18 @@
         </java>
         <echo>checking for syntax errors in the grammars by compiling the generated files...</echo>
         <antcall target="compile" />
+    </target>
+
+    <target name="test" depends="compile" description="Runs all the unit tests">
+        <junit printsummary="yes" fork="yes" haltonfailure="yes">
+            <classpath refid="classpath"/>
+            <formatter type="plain"/>
+            <batchtest fork="yes" todir="${build.dir}">
+                <fileset dir="${test.src.dir}">
+                    <include name="**/*Test.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
     </target>
 
     <target name="jar" depends="generate">
