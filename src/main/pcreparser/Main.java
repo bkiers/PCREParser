@@ -78,9 +78,9 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         try {
-            String regex = "(a)(a)(a)(a)(a)(a)(a)(a)(a)(a)\\1";
+            String regex = "(a)(?<X>b)\\1\\k<X>";
 
-            System.out.println("aaaaaaaaaaa23".matches(regex));
+            //System.out.println("aaaaaaaaaaa23".matches(regex));
 
             PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
             PCREParser parser = new PCREParser(new CommonTokenStream(lexer));

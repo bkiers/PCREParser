@@ -105,6 +105,7 @@ boundaryMatch
 
 backReference
  : ^(BACK_REFERENCE INT)
+ | ^(NAMED_BACK_REFERENCE NAME)
  ;
 
 group

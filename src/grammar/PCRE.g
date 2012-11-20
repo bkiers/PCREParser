@@ -50,6 +50,7 @@ tokens {
   FLAG_GROUP;
   ATOMIC_GROUP;
   NON_CAPTURE_GROUP;
+  NAMED_BACK_REFERENCE;
   NAMED_CAPTURE_GROUP;
   POSITIVE_LOOK_AHEAD;
   NEGATIVE_LOOK_AHEAD;
@@ -114,13 +115,12 @@ unit
  : charClass
  | singleCharLiteral
  | boundaryMatch
- | Quotation                   -> LITERAL[$Quotation.text]
+ | Quotation               -> LITERAL[$Quotation.text]
  | backReference
  | group
  | shorthandCharacterClass
  | UnicodeScriptOrBlock
- | NegatedUnicodeScriptOrBlock
- | Dot                         -> DOT
+ | Dot                     -> DOT
  ;
 
 quantifier
@@ -158,7 +158,6 @@ charClassAtom
  |                    Quotation                  -> LITERAL[$Quotation.text]
  |                    shorthandCharacterClass
  |                    UnicodeScriptOrBlock
- |                    NegatedUnicodeScriptOrBlock
  |                    charClassSingleCharLiteral
  ;
 
@@ -256,13 +255,14 @@ boundaryMatch
 
 backReference
  : '\\' i=backReferenceInteger -> ^(BACK_REFERENCE INT[$backReferenceInteger.number])
+ | '\\' OtherChar '<' name '>' -> ^(NAMED_BACK_REFERENCE NAME[$name.text]) // TODO OtherChar must be a 'k'
  ;
 
 group
  : '('
-   ( '?' ( (flags                   -> ^(FLAG_GROUP flags)
+   ( '?' ( ( flags                  -> ^(FLAG_GROUP flags)
            ) 
-           (':' regexAlts           -> ^(NON_CAPTURE_GROUP flags regexAlts)
+           ( ':' regexAlts          -> ^(NON_CAPTURE_GROUP flags regexAlts)
            )?
          | ':' regexAlts            -> ^(NON_CAPTURE_GROUP ^(FLAGS ^(ENABLE) ^(DISABLE)) regexAlts)
          | '>' regexAlts            -> ^(ATOMIC_GROUP regexAlts)
