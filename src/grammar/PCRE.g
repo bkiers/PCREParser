@@ -103,7 +103,7 @@ atoms
  ;
 
 regexAtom
- : unit quantifier? -> ^(unit quantifier?)
+ : unit quantifier? -> ^(ATOM unit quantifier?)
  ;
 
 unit
@@ -116,7 +116,7 @@ unit
  | shorthandCharacterClass
  | posixCharacterClass
  | UnicodeScriptOrBlock
- | Dot
+ | Dot                     -> DOT
  ;
 
 quantifier

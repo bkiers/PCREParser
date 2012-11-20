@@ -50,7 +50,7 @@ atoms
  ;
 
 regexAtom
- : ^(unit quantifier?)
+ : ^(ATOM unit quantifier?)
  ;
 
 unit
@@ -61,7 +61,7 @@ unit
  | shorthandCharacterClass
  | posixCharacterClass
  | UnicodeScriptOrBlock
- | Dot
+ | DOT
  | LITERAL
  ;
 

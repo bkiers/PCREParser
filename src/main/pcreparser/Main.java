@@ -78,7 +78,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         try {
-            String regex = "\\p{Lu}";
+            String regex = "\\p{Lu}.[.]";
 
             PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
             PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
