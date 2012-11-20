@@ -104,12 +104,13 @@ boundaryMatch
  ;
 
 backReference
- : ^(BACK_REFERENCE integer)
+ : ^(BACK_REFERENCE INT)
  ;
 
 group
  : ^(FLAG_GROUP flags)
  | ^(NON_CAPTURE_GROUP flags regexAlts)
+ | ^(NAMED_CAPTURE_GROUP NAME regexAlts)
  | ^(ATOMIC_GROUP regexAlts)
  | ^(NEGATIVE_LOOK_AHEAD regexAlts)
  | ^(POSITIVE_LOOK_AHEAD regexAlts)
@@ -149,8 +150,4 @@ posixCharacterClass
  | PosixCharacterClassCntrl
  | PosixCharacterClassXDigit
  | PosixCharacterClassSpace
- ;
-
-integer
- : Digit+
  ;

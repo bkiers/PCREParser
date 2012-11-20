@@ -50,6 +50,7 @@ tokens {
   FLAG_GROUP;
   ATOMIC_GROUP;
   NON_CAPTURE_GROUP;
+  NAMED_CAPTURE_GROUP;
   POSITIVE_LOOK_AHEAD;
   NEGATIVE_LOOK_AHEAD;
   POSITIVE_LOOK_BEHIND;
@@ -64,6 +65,7 @@ tokens {
   MIN_MAX;
   LITERAL;
   FLAG;
+  NAME;
 }
 
 @parser::header {
@@ -75,6 +77,9 @@ tokens {
 }
 
 @parser::members {
+
+  private int groupCount = 0;
+
   @Override
   public void reportError(RecognitionException e) {
     throw new RuntimeException(e);
@@ -251,26 +256,31 @@ boundaryMatch
  ;
 
 backReference
- : '\\' integer -> ^(BACK_REFERENCE integer)
+ : '\\' i=backReferenceInteger -> ^(BACK_REFERENCE INT[$backReferenceInteger.number])
  ;
 
 group
- : '(' 
-   ( '?' ( (flags               -> ^(FLAG_GROUP flags)
+ : '('
+   ( '?' ( (flags                 -> ^(FLAG_GROUP flags)
            ) 
-           (':' regexAlts       -> ^(NON_CAPTURE_GROUP flags regexAlts)
+           (':' regexAlts         -> ^(NON_CAPTURE_GROUP flags regexAlts)
            )?
-         | ':' regexAlts        -> ^(NON_CAPTURE_GROUP ^(FLAGS ^(ENABLE) ^(DISABLE)) regexAlts)
-         | '>' regexAlts        -> ^(ATOMIC_GROUP regexAlts)
-         | '!' regexAlts        -> ^(NEGATIVE_LOOK_AHEAD regexAlts)
-         | '=' regexAlts        -> ^(POSITIVE_LOOK_AHEAD regexAlts)
-         | '<' ( '!' regexAlts  -> ^(NEGATIVE_LOOK_BEHIND regexAlts)
-               | '=' regexAlts  -> ^(POSITIVE_LOOK_BEHIND regexAlts)
+         | ':' regexAlts          -> ^(NON_CAPTURE_GROUP ^(FLAGS ^(ENABLE) ^(DISABLE)) regexAlts)
+         | '>' regexAlts          -> ^(ATOMIC_GROUP regexAlts)
+         | '!' regexAlts          -> ^(NEGATIVE_LOOK_AHEAD regexAlts)
+         | '=' regexAlts          -> ^(POSITIVE_LOOK_AHEAD regexAlts)
+         | '<' ( '!' regexAlts    -> ^(NEGATIVE_LOOK_BEHIND regexAlts)
+               | '=' regexAlts    -> ^(POSITIVE_LOOK_BEHIND regexAlts)
                )
+         | '<' name '>' regexAlts -> ^(NAMED_CAPTURE_GROUP NAME[$name.text] regexAlts)
          )
-   | regexAlts                  -> ^(CAPTURE_GROUP regexAlts)
+   | regexAlts {groupCount++;}    -> ^(CAPTURE_GROUP regexAlts)
    )
    ')'
+ ;
+
+name
+ : OtherChar+ // TODO check: [a-zA-Z][a-zA-Z0-9]*
  ;
 
 flags
@@ -312,7 +322,21 @@ posixCharacterClass
  ;
 
 integer
- : (options{greedy=true;}: Digit)+
+ : Digit+
+ ;
+
+backReferenceInteger returns [String number]
+ : Digit
+   {
+     $number = $Digit.text;
+     while(input.LT(1).getType() == Digit) {
+       String nextDigit = input.LT(1).getText();
+       String tempNumber = $number + nextDigit;
+       if(Integer.valueOf(tempNumber) > this.groupCount) break;
+       input.consume();
+       $number = tempNumber;
+     }
+   }
  ;
 
 // lexer rules

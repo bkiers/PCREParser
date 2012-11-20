@@ -78,7 +78,9 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         try {
-            String regex = "\\p{Lu}.[.]";
+            String regex = "(a)(a)(a)(a)(a)(a)(a)(a)(a)(a)\\1023";
+
+            System.out.println("aaaaaaaaaaa23".matches(regex));
 
             PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
             PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
@@ -88,7 +90,7 @@ public class Main {
             StringBuilder builder = new StringBuilder();
             walk(ast, parser.getTokenNames(), builder);
 
-            System.out.println(builder);
+            System.out.println(ast.toStringTree() + "\n\n" + builder);
 
             PCREWalker walker = new PCREWalker(new CommonTreeNodeStream(ast));
             walker.walk();
