@@ -77,19 +77,24 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        String regex = "^([^^$+]++)(?!!\\1)\\W*?$";
+        try {
+            String regex = "\\p{Lu}";
 
-        PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
-        PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
+            PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
+            PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
 
-        CommonTree ast = parser.parse().tree;
+            CommonTree ast = parser.parse().tree;
 
-        StringBuilder builder = new StringBuilder();
-        walk(ast, parser.getTokenNames(), builder);
+            StringBuilder builder = new StringBuilder();
+            walk(ast, parser.getTokenNames(), builder);
 
-        System.out.println(builder);
+            System.out.println(builder);
 
-        PCREWalker walker = new PCREWalker(new CommonTreeNodeStream(ast));
-        walker.walk();
+            PCREWalker walker = new PCREWalker(new CommonTreeNodeStream(ast));
+            walker.walk();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
     }
 }

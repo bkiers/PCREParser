@@ -94,13 +94,6 @@ parse
    //(t=. {System.out.printf("\%-25s '\%s'\n", tokenNames[$t.type], $t.text);})* EOF
  ;
 
-/*
-regexAlts
- : ^(Or atoms regexAlts)
- | atoms
- ;
-*/
-
 regexAlts
  : (atoms -> atoms) ('|' a=atoms -> ^(OR $regexAlts $a))*
  ;
@@ -110,7 +103,7 @@ atoms
  ;
 
 regexAtom
- : unit quantifier? -> ^(ATOM unit quantifier?)
+ : unit quantifier? -> ^(unit quantifier?)
  ;
 
 unit
@@ -122,12 +115,13 @@ unit
  | group
  | shorthandCharacterClass
  | posixCharacterClass
+ | UnicodeScriptOrBlock
  | Dot
  ;
 
 quantifier
- : (greedy -> ^(GREEDY greedy)) ('+' -> ^(POSSESSIVE greedy)
-                                |'?' -> ^(RELUCTANT greedy)
+ : (greedy -> ^(GREEDY greedy)) ( '+' -> ^(POSSESSIVE greedy)
+                                | '?' -> ^(RELUCTANT greedy)
                                 )?
  ;
 
@@ -160,6 +154,7 @@ charClassAtom
  |                    Quotation                  -> LITERAL[$Quotation.text]
  |                    shorthandCharacterClass
  |                    posixCharacterClass
+ |                    UnicodeScriptOrBlock
  |                    charClassSingleCharLiteral
  ;
 
@@ -325,19 +320,20 @@ Quotation
  : '\\Q' .* '\\E' {setText($text.substring(2, $text.length() - 2));}
  ;
 
-PosixCharacterClassLower  : 'p{Lower}';
-PosixCharacterClassUpper  : 'p{Upper}';
-PosixCharacterClassASCII  : 'p{ASCII}';
-PosixCharacterClassAlpha  : 'p{Alpha}';
-PosixCharacterClassDigit  : 'p{Digit}';
-PosixCharacterClassAlnum  : 'p{Alnum}';
-PosixCharacterClassPunct  : 'p{Punct}';
-PosixCharacterClassGraph  : 'p{Graph}';
-PosixCharacterClassPrint  : 'p{Print}';
-PosixCharacterClassBlank  : 'p{Blank}';
-PosixCharacterClassCntrl  : 'p{Cntrl}';
-PosixCharacterClassXDigit : 'p{XDigit}';
-PosixCharacterClassSpace  : 'p{Space}';
+PosixCharacterClassLower  : '\\p{Lower}';
+PosixCharacterClassUpper  : '\\p{Upper}';
+PosixCharacterClassASCII  : '\\p{ASCII}';
+PosixCharacterClassAlpha  : '\\p{Alpha}';
+PosixCharacterClassDigit  : '\\p{Digit}';
+PosixCharacterClassAlnum  : '\\p{Alnum}';
+PosixCharacterClassPunct  : '\\p{Punct}';
+PosixCharacterClassGraph  : '\\p{Graph}';
+PosixCharacterClassPrint  : '\\p{Print}';
+PosixCharacterClassBlank  : '\\p{Blank}';
+PosixCharacterClassCntrl  : '\\p{Cntrl}';
+PosixCharacterClassXDigit : '\\p{XDigit}';
+PosixCharacterClassSpace  : '\\p{Space}';
+UnicodeScriptOrBlock      : '\\p{' ('a'..'z' | 'A'..'Z' | '_')+ '}';
 
 ShorthandCharacterClassDigit    : '\\d';
 ShorthandCharacterClassNonDigit : '\\D';
