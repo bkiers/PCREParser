@@ -254,8 +254,8 @@ boundaryMatch
  ;
 
 backReference
- : '\\' i=backReferenceInteger -> ^(BACK_REFERENCE INT[$backReferenceInteger.number])
- | '\\' OtherChar '<' name '>' -> ^(NAMED_BACK_REFERENCE NAME[$name.text]) // TODO OtherChar must be a 'k'
+ : '\\' i=backReferenceInteger   -> ^(BACK_REFERENCE INT[$backReferenceInteger.number])
+ | '\\' c=OtherChar '<' name '>' -> ^(NAMED_BACK_REFERENCE NAME[$name.text]) // TODO OtherChar must be a 'k'
  ;
 
 group
@@ -380,12 +380,14 @@ UnicodeChar
  ;
 
 EscapeSequence
- : Escape ( 't'         {setText("\t");}
-          | 'n'         {setText("\n");}
-          | 'r'         {setText("\r");}
-          | 'f'         {setText("\f");}
-          | 'a'         {setText("\u0007");}
-          | 'e'         {setText("\u001B");}
+ : Escape ( 't'          {setText("\t");}
+          | 'n'          {setText("\n");}
+          | 'r'          {setText("\r");}
+          | 'f'          {setText("\f");}
+          | 'a'          {setText("\u0007");}
+          | 'e'          {setText("\u001B");}
+          | 'c' UCase
+          | NonAlphaNum  {setText($NonAlphaNum.text);}
           )
  ;
 
@@ -414,6 +416,7 @@ Digit              : '0'..'9';
 OtherChar          :  . ;
 
 // fragments
+fragment UCase       : 'A'..'Z';
 fragment NonAlphaNum : ~('a'..'z' | 'A'..'Z' | '0'..'9');
 fragment OctDigit    : '0'..'7';
-fragment HexDigit    : ('0'..'9' | 'a'..'f' | 'A'..'F');
+fragment HexDigit    : '0'..'9' | 'a'..'f' | 'A'..'F';

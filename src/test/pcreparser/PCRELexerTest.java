@@ -207,9 +207,9 @@ public class PCRELexerTest {
 
     @Test
     public void EscapeSequenceTest() {
-        List<CommonToken> tokens = getTokens("\\t\\n\\r\\f\\a\\e");
+        List<CommonToken> tokens = getTokens("\\t\\n\\r\\f\\a\\e\\cM");
 
-        assertThat(tokens.size(), is(6));
+        assertThat(tokens.size(), is(7));
 
         for(CommonToken t : tokens) {
             assertThat(t.getType(), is(PCRELexer.EscapeSequence));
@@ -221,6 +221,7 @@ public class PCRELexerTest {
         assertThat(tokens.get(3).getText(), is("\f"));
         assertThat(tokens.get(4).getText(), is("\u0007"));
         assertThat(tokens.get(5).getText(), is("\u001B"));
+        assertThat(tokens.get(6).getText(), is("\\cM"));
     }
 
     @Test
