@@ -78,7 +78,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         try {
-            String regex = "(a)(a)(a)(a)(a)(a)(a)(a)(a)(a)\\1023";
+            String regex = "(a)(a)(a)(a)(a)(a)(a)(a)(a)(a)\\1";
 
             System.out.println("aaaaaaaaaaa23".matches(regex));
 

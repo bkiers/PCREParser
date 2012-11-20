@@ -60,7 +60,6 @@ tokens {
   ENABLE;
   DISABLE;
   DOT;
-  ATOM;
   ATOMS;
   MIN_MAX;
   LITERAL;
@@ -329,10 +328,20 @@ backReferenceInteger returns [String number]
  : Digit
    {
      $number = $Digit.text;
+
+     // keep looping while there is a digit ahead
      while(input.LT(1).getType() == Digit) {
+
+       // get the text of the next digit
        String nextDigit = input.LT(1).getText();
+
+       // append this digit to the current number
        String tempNumber = $number + nextDigit;
+
+       // if the 'tempNumber' is more then the total 'groupCount', stop looping
        if(Integer.valueOf(tempNumber) > this.groupCount) break;
+
+       // consume the digit and append it to '$number'
        input.consume();
        $number = tempNumber;
      }
