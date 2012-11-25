@@ -30,8 +30,7 @@ package pcreparser;
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Main {
 
@@ -78,22 +77,17 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         try {
-            String regex = "(a)(?<X>b)\\1\\k<X>";
-
-            //System.out.println("aaaaaaaaaaa23".matches(regex));
+            String regex = "(?R)(?100)(?+100)(?-100)(?&name)(?P>name)\\g<name>\\g'name'\\g<100>\\g'100'\\g<+100>\\g'+100'\\g<-100>\\g'-100'";
 
             PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
             PCREParser parser = new PCREParser(new CommonTokenStream(lexer));
 
-            CommonTree ast = parser.parse().tree;
+            CommonTree ast = (CommonTree)parser.parse().getTree();
 
             StringBuilder builder = new StringBuilder();
             walk(ast, parser.getTokenNames(), builder);
 
             System.out.println(ast.toStringTree() + "\n\n" + builder);
-
-            PCREWalker walker = new PCREWalker(new CommonTreeNodeStream(ast));
-            walker.walk();
         }
         catch (Exception e) {
             System.out.println(e);

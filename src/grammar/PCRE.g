@@ -30,393 +30,879 @@ grammar PCRE;
 options {
   ASTLabelType=CommonTree;
   output=AST;
+  backtrack=true;
+  memoize=true;
 }
 
 tokens {
-  ATOM;
-  DOT;
-  OR;
-  CHAR_CLASS;
-  NEG_CHAR_CLASS;
-  RANGE;
-  QUOTATION;
-  INT;
-  QUANTIFIER;
+  ALTERNATIVE;
+  ASSERT;
+  ATOMIC_GROUPING;
+  BACKTACK_CONTROL_ACCEPT;
+  BACKTACK_CONTROL_COMMIT;
+  BACKTACK_CONTROL_FAIL;
+  BACKTACK_CONTROL_MARK_NAME;
+  BACKTACK_CONTROL_PRUNE;
+  BACKTACK_CONTROL_PRUNE_NAME;
+  BACKTACK_CONTROL_SKIP;
+  BACKTACK_CONTROL_SKIP_NAME;
+  BACKTACK_CONTROL_THEN;
+  BACKTACK_CONTROL_THEN_NAME;
+  CALLOUT;
+  CAPTURING_GROUP;
+  CHARACTER_CLASS;
+  COMMENT;
+  DEFINE;
+  ELEMENT;
   GREEDY;
-  RELUCTANT;
-  POSSESSIVE;
-  BACK_REFERENCE;
-  CAPTURE_GROUP;
-  FLAG_GROUP;
-  ATOMIC_GROUP;
-  NON_CAPTURE_GROUP;
-  NAMED_BACK_REFERENCE;
-  NAMED_CAPTURE_GROUP;
-  POSITIVE_LOOK_AHEAD;
-  NEGATIVE_LOOK_AHEAD;
-  POSITIVE_LOOK_BEHIND;
-  NEGATIVE_LOOK_BEHIND;
-  FLAGS;
-  CHARS;
-  ENABLE;
-  DISABLE;
-  DOT;
-  ATOMS;
-  MIN_MAX;
+  LAZY;
   LITERAL;
-  FLAG;
+  LOOK_AHEAD;
+  LOOK_BEHIND;
   NAME;
+  NAMED_BACKREFERENCE_NET;
+  NAMED_BACKREFERENCE_PERL;
+  NAMED_BACKREFERENCE_PYTHON;
+  NAMED_CAPTURING_GROUP_PERL;
+  NAMED_CAPTURING_GROUP_PYTHON;
+  NAMED_REFERENCE_CONDITION;
+  NAMED_REFERENCE_CONDITION_PERL;
+  NAMED_REFERENCE_PERL;
+  NAMED_REFERENCE_PYTHON;
+  NAMED_REFERENCE_ONIGURUMA;
+  NEGATED_CHARACTER_CLASS;
+  NEGATIVE_LOOK_AHEAD;
+  NEGATIVE_LOOK_BEHIND;
+  NEWLINE_CONVENTION_ANY;
+  NEWLINE_CONVENTION_ANYCRLF;
+  NEWLINE_CONVENTION_BSR_ANYCRLF;
+  NEWLINE_CONVENTION_BSR_UNICODE;
+  NEWLINE_CONVENTION_CR;
+  NEWLINE_CONVENTION_CRLF;
+  NEWLINE_CONVENTION_LF;
+  NO;
+  NON_CAPTURING_GROUP;
+  NON_CAPTURING_GROUP_RESET;
+  NUMBER;
+  NUMBERED_BACKREFERENCE;
+  NUMBERED_REFERENCE_ABSOLUTE;
+  NUMBERED_REFERENCE_ABSOLUTE_ONIGURUMA;
+  NUMBERED_REFERENCE_RELATIVE_MINUS;
+  NUMBERED_REFERENCE_RELATIVE_PLUS;
+  OPTION;
+  OPTIONS;
+  OPTIONS_NO_START_OPT;
+  OPTIONS_UCP;
+  OPTIONS_UTF8;
+  OPTIONS_UTF16;
+  OR;
+  OVERALL_RECURSION_CONDITION;
+  POSSESSIVE;
+  QUANTIFIER;
+  RANGE;
+  REFERENCE_CONDITION_ABSOLUTE;
+  REFERENCE_CONDITION_RELATIVE_MINUS;
+  REFERENCE_CONDITION_RELATIVE_PLUS;
+  RELATIVE_NUMBERED_BACKREFERENCE;
+  SET;
+  SPECIFIC_GROUP_RECURSION_CONDITION;
+  SPECIFIC_RECURSION_CONDITION;
+  START_OF_SUBJECT;
+  UNSET;
+  YES;
 }
 
 @parser::header {
   package pcreparser;
+
+  import java.util.Map;
+  import java.util.TreeMap;
 }
 
 @lexer::header {
   package pcreparser;
+  
+  import java.util.Set;
+  import java.util.HashSet;
+  import java.util.Arrays;
 }
 
 @parser::members {
 
-  private int groupCount = 0;
-
-  @Override
-  public void reportError(RecognitionException e) {
-    throw new RuntimeException(e);
-  }
+  public static final String HUGE_NUMBER = String.valueOf(Integer.MAX_VALUE);
 }
 
 @lexer::members {
-  @Override
-  public void reportError(RecognitionException e) {
-    throw new RuntimeException(e);
+  
+  private final Set<String> namedSet = new HashSet<String>(Arrays.asList("alnum", "alpha", "ascii", "blank", "cntrl", 
+                "digit", "graph", "lower", "print", "punct", "space", "upper", "word", "xdigit"));
+
+  private final Set<String> optionSet = new HashSet<String>(Arrays.asList("NO_START_OPT", "UTF8", "UTF16", "UCP"));
+                
+  private final Set<String> propertySet = new HashSet<String>(Arrays.asList("C", "Cc", "Cf", "Cn", "Co", "Cs", "L", "Ll", "Lm", 
+                "Lo", "Lt", "Lu", "L", "M", "Mc", "Me", "Mn", "N", "Nd", "Nl", "No", "P", "Pc", "Pd", "Pe", "Pf", 
+                "Pi", "Po", "Ps", "S", "Sc", "Sk", "Sm", "So", "Z", "Zl", "Zp", "Zs", "Xan", "Xps", "Xsp", "Xwd", 
+                "Arabic", "Armenian", "Avestan", "Balinese", "Bamum", "Batak", "Bengali", "Bopomofo", "Brahmi", 
+                "Braille", "Buginese", "Buhid", "Canadian_Aboriginal", "Carian", "Chakma", "Cham", "Cherokee", 
+                "Common", "Coptic", "Cuneiform", "Cypriot", "Cyrillic", "Deseret", "Devanagari", "Egyptian_Hieroglyphs", 
+                "Ethiopic", "Georgian", "Glagolitic", "Gothic", "Greek", "Gujarati", "Gurmukhi", "Han", "Hangul", 
+                "Hanunoo", "Hebrew", "Hiragana", "Imperial_Aramaic", "Inherited", "Inscriptional_Pahlavi", 
+                "Inscriptional_Parthian", "Javanese", "Kaithi", "Kannada", "Katakana", "Kayah_Li", "Kharoshthi", 
+                "Khmer", "Lao", "Latin", "Lepcha", "Limbu", "Linear_B", "Lisu", "Lycian", "Lydian", "Malayalam",
+                "Mandaic", "Meetei_Mayek", "Meroitic_Cursive", "Meroitic_Hieroglyphs", "Miao", "Mongolian", "Myanmar", 
+                "New_Tai_Lue", "Nko", "Ogham", "Old_Italic", "Old_Persian", "Old_South_Arabian", "Old_Turkic", 
+                "Ol_Chiki", "Oriya", "Osmanya", "Phags_Pa", "Phoenician", "Rejang", "Runic", "Samaritan", 
+                "Saurashtra", "Sharada", "Shavian", "Sinhala", "Sora_Sompeng", "Sundanese", "Syloti_Nagri", 
+                "Syriac", "Tagalog", "Tagbanwa", "Tai_Le", "Tai_Tham", "Tai_Viet", "Takri", "Tamil", "Telugu", 
+                "Thaana", "Thai", "Tibetan", "Tifinagh", "Ugaritic", "Vai", "Yi"));
+                
+  private void checkNamedSet(String name) {
+    if(!this.namedSet.contains(name)) {
+      throw new RuntimeException("unsupported named set: " + name);
+    }
+  }
+  
+  private void checkOption(String name) {
+    if(!this.namedSet.contains(name)) {
+      throw new RuntimeException("unsupported option: " + name);
+    }
+  }
+  
+  private void checkProperty(String name) {
+    if(!this.propertySet.contains(name)) {
+      throw new RuntimeException("unsupported character property: " + name);
+    }
   }
 }
 
-// parser rules
+/*****************************************************************************************
+ *                                                                                       *
+ *                                   PARSER RULES                                        *
+ *                                                                                       *
+ *****************************************************************************************/
+
+// Almost all single line comments above the lexer- and  parser rules 
+// are copied from the official PCRE man pages (last updated: 10 January 
+// 2012): http://www.pcre.org/pcre.txt
 parse
- : regexAlts EOF -> regexAlts
+ : regex EOF -> regex
    //(t=. {System.out.printf("\%-25s '\%s'\n", tokenNames[$t.type], $t.text);})* EOF
  ;
 
-regexAlts
- : (atoms -> atoms) ('|' a=atoms -> ^(OR $regexAlts $a))*
+// ALTERNATION
+//
+//         expr|expr|expr...
+regex
+ : (first_alternative -> first_alternative) (('|' alternative)+ -> ^(OR first_alternative alternative+))?
  ;
 
-atoms
- : regexAtom* -> ^(ATOMS regexAtom*)
+first_alternative
+ : alternative
  ;
 
-regexAtom
- : unit quantifier? -> ^(ATOM unit quantifier?)
+alternative
+ : element+ -> ^(ALTERNATIVE element+)
  ;
 
-unit
- : charClass
- | singleCharLiteral
- | boundaryMatch
- | Quotation               -> LITERAL[$Quotation.text]
- | backReference
- | group
- | shorthandCharacterClass
- | UnicodeScriptOrBlock
- | Dot                     -> DOT
+element
+ : atom quantifier? -> ^(ELEMENT atom quantifier?)
  ;
 
+// QUANTIFIERS
+//
+//         ?           0 or 1, greedy
+//         ?+          0 or 1, possessive
+//         ??          0 or 1, lazy
+//         *           0 or more, greedy
+//         *+          0 or more, possessive
+//         *?          0 or more, lazy
+//         +           1 or more, greedy
+//         ++          1 or more, possessive
+//         +?          1 or more, lazy
+//         {n}         exactly n
+//         {n,m}       at least n, no more than m, greedy
+//         {n,m}+      at least n, no more than m, possessive
+//         {n,m}?      at least n, no more than m, lazy
+//         {n,}        n or more, greedy
+//         {n,}+       n or more, possessive
+//         {n,}?       n or more, lazy
 quantifier
- : (greedy -> ^(GREEDY greedy)) ( '+' -> ^(POSSESSIVE greedy)
-                                | '?' -> ^(RELUCTANT greedy)
-                                )?
+ : '?' quantifier_type                       -> ^(QUANTIFIER NUMBER["0"] NUMBER["1"]         quantifier_type)
+ | '+' quantifier_type                       -> ^(QUANTIFIER NUMBER["1"] NUMBER[HUGE_NUMBER] quantifier_type)
+ | '*' quantifier_type                       -> ^(QUANTIFIER NUMBER["0"] NUMBER[HUGE_NUMBER] quantifier_type)
+ | '{' number '}' quantifier_type            -> ^(QUANTIFIER number      number              quantifier_type)
+ | '{' number ',' '}' quantifier_type        -> ^(QUANTIFIER number      NUMBER[HUGE_NUMBER] quantifier_type)
+ | '{' number ',' number '}' quantifier_type -> ^(QUANTIFIER number      number              quantifier_type)
  ;
 
-greedy
- : '+'            -> ^(MIN_MAX INT["1"] INT[String.valueOf(Integer.MAX_VALUE)])
- | '*'            -> ^(MIN_MAX INT["0"] INT[String.valueOf(Integer.MAX_VALUE)])
- | '?'            -> ^(MIN_MAX INT["0"] INT["1"])
- | '{' (a=integer -> ^(MIN_MAX INT[$a.text] INT[$a.text]))
-   (
-     (','         -> ^(MIN_MAX INT[$a.text] INT[String.valueOf(Integer.MAX_VALUE)]))
-     (b=integer   -> ^(MIN_MAX INT[$a.text] INT[$b.text]))?
-   )? 
-   '}'
+quantifier_type
+ : '+'           -> POSSESSIVE 
+ | '?'           -> LAZY
+ | /* nothing */ -> GREEDY
  ;
 
-charClass
- : '[' (('^')=> '^' ( SquareBracketEnd charClassAtom* -> ^(NEG_CHAR_CLASS LITERAL["]"] charClassAtom*)
-                    | charClassAtom+                  -> ^(NEG_CHAR_CLASS charClassAtom+)
-                    )
-                    ']'
-       |            ( SquareBracketEnd charClassAtom* -> ^(CHAR_CLASS LITERAL["]"] charClassAtom*)
-                    | charClassAtom+                  -> ^(CHAR_CLASS charClassAtom+)
-                    )
-                    ']'
-       )
+// CHARACTER CLASSES
+//
+//         [...]       positive character class
+//         [^...]      negative character class
+//         [x-y]       range (can be used for hex characters)
+//         [[:xxx:]]   positive POSIX named set
+//         [[:^xxx:]]  negative POSIX named set
+//
+//         alnum       alphanumeric
+//         alpha       alphabetic
+//         ascii       0-127
+//         blank       space or tab
+//         cntrl       control character
+//         digit       decimal digit
+//         graph       printing, excluding space
+//         lower       lower case letter
+//         print       printing, including space
+//         punct       printing, excluding alphanumeric
+//         space       white space
+//         upper       upper case letter
+//         word        same as \w
+//         xdigit      hexadecimal digit
+//
+//       In PCRE, POSIX character set names recognize only ASCII  characters  by
+//       default,  but  some  of them use Unicode properties if PCRE_UCP is set.
+//       You can use \Q...\E inside a character class.
+character_class
+ : '[' '^' CharacterClassEnd cc_atom* ']'                        -> ^(NEGATED_CHARACTER_CLASS LITERAL["]"] cc_atom*)
+ | '[' '^' cc_atom+ ']'                                          -> ^(NEGATED_CHARACTER_CLASS cc_atom+)
+ | '[' CharacterClassEnd Hyphen a=cc_atom_end_range cc_atom* ']' -> ^(CHARACTER_CLASS ^(RANGE LITERAL["]"] cc_atom_end_range) cc_atom*)
+ | '[' CharacterClassEnd cc_atom* ']'                            -> ^(CHARACTER_CLASS LITERAL["]"] cc_atom*)
+ | '[' cc_atom+ ']'                                              -> ^(CHARACTER_CLASS cc_atom+)
  ;
 
-charClassAtom
- : (charClassRange)=> charClassRange 
- |                    Quotation                  -> LITERAL[$Quotation.text]
- |                    shorthandCharacterClass
- |                    UnicodeScriptOrBlock
- |                    charClassSingleCharLiteral
+cc_atom_end_range
+ : cc_atom
  ;
 
-charClassRange
- : charClassSingleCharLiteral '-' charClassSingleCharLiteral -> ^(RANGE charClassSingleCharLiteral charClassSingleCharLiteral)
+// BACKREFERENCES
+//
+//         \n              reference by number (can be ambiguous)
+//         \gn             reference by number
+//         \g{n}           reference by number
+//         \g{-n}          relative reference by number
+//         \k<name>        reference by name (Perl)
+//         \k'name'        reference by name (Perl)
+//         \g{name}        reference by name (Perl)
+//         \k{name}        reference by name (.NET)
+//         (?P=name)       reference by name (Python)
+backreference
+ : backreference_or_octal
+ | '\\g' number             -> ^(NUMBERED_BACKREFERENCE number)
+ | '\\g' '{' number '}'     -> ^(NUMBERED_BACKREFERENCE number)
+ | '\\g' '{' '-' number '}' -> ^(RELATIVE_NUMBERED_BACKREFERENCE number)
+ | '\\k' '<' name '>'       -> ^(NAMED_BACKREFERENCE_PERL name)
+ | '\\k' '\'' name '\''     -> ^(NAMED_BACKREFERENCE_PERL name)
+ | '\\g' '{' name '}'       -> ^(NAMED_BACKREFERENCE_PERL name)
+ | '\\k' '{' name '}'       -> ^(NAMED_BACKREFERENCE_NET name)
+ | '(' '?' 'P' '=' name ')' -> ^(NAMED_BACKREFERENCE_PYTHON name)
  ;
 
-charClassSingleCharLiteral
- : charClassEscapeLiteral -> charClassEscapeLiteral
- | EscapeSequence         -> LITERAL[$EscapeSequence.text]
- | OctalChar              -> LITERAL[$OctalChar.text]
- | SmallHexChar           -> LITERAL[$SmallHexChar.text]
- | UnicodeChar            -> LITERAL[$UnicodeChar.text]
- | charClassSingleChar    -> LITERAL[$charClassSingleChar.text]
+backreference_or_octal
+ : EscapedDigit -> ^(NUMBERED_BACKREFERENCE NUMBER[$EscapedDigit.text])
+   // TODO: consume() Digit's until no capture group exists
  ;
 
-charClassSingleChar
- : Or
- | BeginLine
- | Hyphen
- | Colon
- | EndLine
- | SquareBracketStart
- | RoundBracketStart
- | RoundBracketEnd
- | CurlyBracketStart
- | CurlyBracketEnd
- | Equals
- | LessThan
- | GreaterThan
- | ExclamationMark
- | Comma
- | Plus
- | Star
- | QuestionMark
- | Dot
- | Digit
- | OtherChar
+// CAPTURING
+//
+//         (...)           capturing group
+//         (?<name>...)    named capturing group (Perl)
+//         (?'name'...)    named capturing group (Perl)
+//         (?P<name>...)   named capturing group (Python)
+//         (?:...)         non-capturing group
+//         (?|...)         non-capturing group; reset group numbers for
+//                          capturing groups in each alternative
+//
+// ATOMIC GROUPS
+//
+//         (?>...)         atomic, non-capturing group
+capture
+ : '(' '?' '<' name '>' regex ')'     -> ^(NAMED_CAPTURING_GROUP_PERL name regex)
+ | '(' '?''\'' name '\'' regex ')'    -> ^(NAMED_CAPTURING_GROUP_PERL name regex) 
+ | '(' '?' 'P' '<' name '>' regex ')' -> ^(NAMED_CAPTURING_GROUP_PYTHON name regex)
+ | '(' '?' ':' regex ')'              -> ^(NON_CAPTURING_GROUP regex)
+ | '(' '?' '|' regex ')'              -> ^(NON_CAPTURING_GROUP_RESET regex)
+ | '(' '?' '>' regex ')'              -> ^(ATOMIC_GROUPING regex)
+ | '(' regex ')'                      -> ^(CAPTURING_GROUP regex)
  ;
 
-charClassEscapeLiteral
- : Escape ( Escape           -> LITERAL["\\"]
-          | BeginLine        -> LITERAL["^"]
-          | SquareBracketEnd -> LITERAL["]"]
-          | Hyphen           -> LITERAL["-"]
-          )
+// COMMENT
+//
+//         (?#....)        comment (not nestable)
+comment
+ : '(' '?' '#' non_close_parens ')' -> COMMENT[$non_close_parens.text]
  ;
 
-singleCharLiteral
- : regexEscapeLiteral -> regexEscapeLiteral
- | EscapeSequence     -> LITERAL[$EscapeSequence.text]
- | OctalChar          -> LITERAL[$OctalChar.text]
- | SmallHexChar       -> LITERAL[$SmallHexChar.text]
- | UnicodeChar        -> LITERAL[$UnicodeChar.text]
- | Hyphen             -> LITERAL["-"]
- | Colon              -> LITERAL[":"]
- | SquareBracketEnd   -> LITERAL["]"]
- | CurlyBracketEnd    -> LITERAL["}"]
- | Equals             -> LITERAL["="]
- | LessThan           -> LITERAL["<"]
- | GreaterThan        -> LITERAL[">"]
- | ExclamationMark    -> LITERAL["!"]
- | Comma              -> LITERAL[","]
- | Digit              -> LITERAL[$Digit.text]
- | OtherChar          -> LITERAL[$OtherChar.text]
+// OPTION SETTING
+//
+//         (?i)            caseless
+//         (?J)            allow duplicate names
+//         (?m)            multiline
+//         (?s)            single line (dotall)
+//         (?U)            default ungreedy (lazy)
+//         (?x)            extended (ignore white space)
+//         (?-...)         unset option(s)
+//
+//       The following are recognized only at the start of a  pattern  or  after
+//       one of the newline-setting options with similar syntax:
+//
+//         (*NO_START_OPT) no start-match optimization (PCRE_NO_START_OPTIMIZE)
+//         (*UTF8)         set UTF-8 mode: 8-bit library (PCRE_UTF8)
+//         (*UTF16)        set UTF-16 mode: 16-bit library (PCRE_UTF16)
+//         (*UCP)          set PCRE_UCP (use Unicode properties for \d etc)
+option
+ : '(' '?' s=option_flags '-' u=option_flags ')'               -> ^(OPTIONS ^(SET $s) ^(UNSET $u))
+ | '(' '?' option_flags ')'                                    -> ^(OPTIONS ^(SET option_flags) UNSET)
+ | '(' '?' '-' option_flags ')'                                -> ^(OPTIONS SET ^(UNSET option_flags))
+ | '(' '*' 'N' 'O' '_' 'S' 'T' 'A' 'R' 'T' '_' 'O' 'P' 'T' ')' -> OPTIONS_NO_START_OPT
+ | '(' '*' 'U' 'T' 'F' '8' ')'                                 -> OPTIONS_UTF8
+ | '(' '*' 'U' 'T' 'F' '1' '6' ')'                             -> OPTIONS_UTF16
+ | '(' '*' 'U' 'C' 'P' ')'                                     -> OPTIONS_UCP
  ;
 
-regexEscapeLiteral
- : Escape ( Escape             -> LITERAL["\\"]
-          | Or                 -> LITERAL["|"]
-          | BeginLine          -> LITERAL["^"]
-          | EndLine            -> LITERAL["$"]
-          | SquareBracketStart -> LITERAL["["]
-          | RoundBracketStart  -> LITERAL["("]
-          | RoundBracketEnd    -> LITERAL[")"]
-          | CurlyBracketStart  -> LITERAL["{"]
-          | CurlyBracketEnd    -> LITERAL["}"]
-          | Plus               -> LITERAL["+"]
-          | Star               -> LITERAL["*"]
-          | QuestionMark       -> LITERAL["?"]
-          | Dot                -> LITERAL["."]
-          )
+option_flags
+ : option_flag+
  ;
 
-boundaryMatch
- : BeginLine
- | EndLine
+option_flag
+ : 'i' -> OPTION["i"]
+ | 'J' -> OPTION["J"]
+ | 'm' -> OPTION["m"]
+ | 's' -> OPTION["s"]
+ | 'U' -> OPTION["U"]
+ | 'x' -> OPTION["x"]
+ ;
+
+// LOOKAHEAD AND LOOKBEHIND ASSERTIONS
+//
+//         (?=...)         positive look ahead
+//         (?!...)         negative look ahead
+//         (?<=...)        positive look behind
+//         (?<!...)        negative look behind
+//
+//       Each top-level branch of a look behind must be of a fixed length.
+look_around
+ : '(' '?' '=' regex ')'     -> ^(LOOK_AHEAD regex)
+ | '(' '?' '!' regex ')'     -> ^(NEGATIVE_LOOK_AHEAD regex)
+ | '(' '?' '<' '=' regex ')' -> ^(LOOK_BEHIND regex)
+ | '(' '?' '<' '!' regex ')' -> ^(NEGATIVE_LOOK_BEHIND regex)
+ ;
+
+// SUBROUTINE REFERENCES (POSSIBLY RECURSIVE)
+//
+//         (?R)            recurse whole pattern
+//         (?n)            call subpattern by absolute number
+//         (?+n)           call subpattern by relative number
+//         (?-n)           call subpattern by relative number
+//         (?&name)        call subpattern by name (Perl)
+//         (?P>name)       call subpattern by name (Python)
+//         \g<name>        call subpattern by name (Oniguruma)
+//         \g'name'        call subpattern by name (Oniguruma)
+//         \g<n>           call subpattern by absolute number (Oniguruma)
+//         \g'n'           call subpattern by absolute number (Oniguruma)
+//         \g<+n>          call subpattern by relative number (PCRE extension)
+//         \g'+n'          call subpattern by relative number (PCRE extension)
+//         \g<-n>          call subpattern by relative number (PCRE extension)
+//         \g'-n'          call subpattern by relative number (PCRE extension)
+subroutine_reference
+ : '(' '?' 'R' ')'            -> ^(NUMBERED_REFERENCE_ABSOLUTE NUMBER["0"])
+ | '(' '?' number ')'         -> ^(NUMBERED_REFERENCE_ABSOLUTE number)
+ | '(' '?' '+' number ')'     -> ^(NUMBERED_REFERENCE_RELATIVE_PLUS number)
+ | '(' '?' '-' number ')'     -> ^(NUMBERED_REFERENCE_RELATIVE_MINUS number)
+ | '(' '?' '&' name ')'       -> ^(NAMED_REFERENCE_PERL name)
+ | '(' '?' 'P' '>' name ')'   -> ^(NAMED_REFERENCE_PYTHON name)
+ | '\\g' '<' name '>'         -> ^(NAMED_REFERENCE_ONIGURUMA name)
+ | '\\g' '\'' name '\''       -> ^(NAMED_REFERENCE_ONIGURUMA name)
+ | '\\g' '<' number '>'       -> ^(NUMBERED_REFERENCE_ABSOLUTE_ONIGURUMA number)
+ | '\\g' '\'' number '\''     -> ^(NUMBERED_REFERENCE_ABSOLUTE_ONIGURUMA number)
+ | '\\g' '<' '+' number '>'   -> ^(NUMBERED_REFERENCE_RELATIVE_PLUS number)
+ | '\\g' '\'' '+' number '\'' -> ^(NUMBERED_REFERENCE_RELATIVE_PLUS number)
+ | '\\g' '<' '-' number '>'   -> ^(NUMBERED_REFERENCE_RELATIVE_MINUS number)
+ | '\\g' '\'' '-' number '\'' -> ^(NUMBERED_REFERENCE_RELATIVE_MINUS number)
+ ;
+
+// CONDITIONAL PATTERNS
+//
+//         (?(condition)yes-pattern)
+//         (?(condition)yes-pattern|no-pattern)
+//
+//         (?(n)...        absolute reference condition
+//         (?(+n)...       relative reference condition
+//         (?(-n)...       relative reference condition
+//         (?(<name>)...   named reference condition (Perl)
+//         (?('name')...   named reference condition (Perl)
+//         (?(name)...     named reference condition (PCRE)
+//         (?(R)...        overall recursion condition
+//         (?(Rn)...       specific group recursion condition
+//         (?(R&name)...   specific recursion condition
+//         (?(DEFINE)...   define subpattern for reference
+//         (?(assert)...   assertion condition
+conditional
+ : '(' '?' '(' number ')' t=regex ('|' f=regex)? ')'                  -> ^(REFERENCE_CONDITION_ABSOLUTE number ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' '+' number ')' t=regex ('|' f=regex)? ')'              -> ^(REFERENCE_CONDITION_RELATIVE_PLUS number ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' '-' number ')' t=regex ('|' f=regex)? ')'              -> ^(REFERENCE_CONDITION_RELATIVE_MINUS number ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' '<' name '>' ')' t=regex ('|' f=regex)? ')'            -> ^(NAMED_REFERENCE_CONDITION_PERL name ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' '\'' name '\'' ')' t=regex ('|' f=regex)? ')'          -> ^(NAMED_REFERENCE_CONDITION_PERL name ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' name ')' t=regex ('|' f=regex)? ')'                    -> ^(NAMED_REFERENCE_CONDITION name ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' 'R' ')' t=regex ('|' f=regex)? ')'                     -> ^(OVERALL_RECURSION_CONDITION ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' 'R' number ')' t=regex ('|' f=regex)? ')'              -> ^(SPECIFIC_GROUP_RECURSION_CONDITION number ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' 'R' '&' name ')' t=regex ('|' f=regex)? ')'            -> ^(SPECIFIC_RECURSION_CONDITION name ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' 'D' 'E' 'F' 'I' 'N' 'E' ')' t=regex ('|' f=regex)? ')' -> ^(DEFINE ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' 'a' 's' 's' 'e' 'r' 't' ')' t=regex ('|' f=regex)? ')' -> ^(ASSERT ^(YES $t) ^(NO $f?))
+ ;
+
+// BACKTRACKING CONTROL
+//
+//       The following act immediately they are reached:
+//
+//         (*ACCEPT)       force successful match
+//         (*FAIL)         force backtrack; synonym (*F)
+//         (*MARK:NAME)    set name to be passed back; synonym (*:NAME)
+//
+//       The  following  act only when a subsequent match failure causes a back-
+//       track to reach them. They all force a match failure, but they differ in
+//       what happens afterwards. Those that advance the start-of-match point do
+//       so only if the pattern is not anchored.
+//
+//         (*COMMIT)       overall failure, no advance of starting point
+//         (*PRUNE)        advance to next starting character
+//         (*PRUNE:NAME)   equivalent to (*MARK:NAME)(*PRUNE)
+//         (*SKIP)         advance to current matching position
+//         (*SKIP:NAME)    advance to position corresponding to an earlier
+//                         (*MARK:NAME); if not found, the (*SKIP) is ignored
+//         (*THEN)         local failure, backtrack to next alternation
+//         (*THEN:NAME)    equivalent to (*MARK:NAME)(*THEN)
+backtrack_control
+ : '(' '*' 'A' 'C' 'C' 'E' 'P' 'T' ')'                 -> BACKTACK_CONTROL_ACCEPT
+ | '(' '*' 'F' ('A' 'I' 'L')? ')'                      -> BACKTACK_CONTROL_FAIL
+ | '(' '*' ('M' 'A' 'R' 'K')? ':' 'N' 'A' 'M' 'E' ')'  -> BACKTACK_CONTROL_MARK_NAME
+ | '(' '*' 'C' 'O' 'M' 'M' 'I' 'T' ')'                 -> BACKTACK_CONTROL_COMMIT
+ | '(' '*' 'P' 'R' 'U' 'N' 'E' ')'                     -> BACKTACK_CONTROL_PRUNE
+ | '(' '*' 'P' 'R' 'U' 'N' 'E' ':' 'N' 'A' 'M' 'E' ')' -> BACKTACK_CONTROL_PRUNE_NAME
+ | '(' '*' 'S' 'K' 'I' 'P' ')'                         -> BACKTACK_CONTROL_SKIP
+ | '(' '*' 'S' 'K' 'I' 'P' ':' 'N' 'A' 'M' 'E' ')'     -> BACKTACK_CONTROL_SKIP_NAME
+ | '(' '*' 'T' 'H' 'E' 'N' ')'                         -> BACKTACK_CONTROL_THEN
+ | '(' '*' 'T' 'H' 'E' 'N' ':' 'N' 'A' 'M' 'E' ')'     -> BACKTACK_CONTROL_THEN_NAME
+ ;
+
+// NEWLINE CONVENTIONS
+//
+//       These are recognized only at the very start of the pattern or  after  a
+//       (*BSR_...), (*UTF8), (*UTF16) or (*UCP) option.
+//
+//         (*CR)           carriage return only
+//         (*LF)           linefeed only
+//         (*CRLF)         carriage return followed by linefeed
+//         (*ANYCRLF)      all three of the above
+//         (*ANY)          any Unicode newline sequence
+//
+// WHAT \R MATCHES
+//
+//       These  are  recognized only at the very start of the pattern or after a
+//       (*...) option that sets the newline convention or a UTF or UCP mode.
+//
+//         (*BSR_ANYCRLF)  CR, LF, or CRLF
+//         (*BSR_UNICODE)  any Unicode newline sequence
+newline_convention
+ : '(' '*' 'C' 'R' ')'                                     -> NEWLINE_CONVENTION_CR
+ | '(' '*' 'L' 'F' ')'                                     -> NEWLINE_CONVENTION_LF
+ | '(' '*' 'C' 'R' 'L' 'F' ')'                             -> NEWLINE_CONVENTION_CRLF
+ | '(' '*' 'A' 'N' 'Y' 'C' 'R' 'L' 'F' ')'                 -> NEWLINE_CONVENTION_ANYCRLF
+ | '(' '*' 'A' 'N' 'Y' ')'                                 -> NEWLINE_CONVENTION_ANY
+ | '(' '*' 'B' 'S' 'R' '_' 'A' 'N' 'Y' 'C' 'R' 'L' 'F' ')' -> NEWLINE_CONVENTION_BSR_ANYCRLF
+ | '(' '*' 'B' 'S' 'R' '_' 'U' 'N' 'I' 'C' 'O' 'D' 'E' ')' -> NEWLINE_CONVENTION_BSR_UNICODE
+ ;
+
+// CALLOUTS
+//
+//         (?C)      callout
+//         (?Cn)     callout with data n
+callout
+ : '(' '?' 'C' ')'        -> ^(CALLOUT)
+ | '(' '?' 'C' number ')' -> ^(CALLOUT number)
+ ;
+
+atom
+ : subroutine_reference
+ | shared_atom
+ | literal
+ | character_class
+ | capture
+ | comment
+ | option
+ | look_around
+ | backreference
+ | conditional
+ | backtrack_control
+ | newline_convention
+ | callout
+ | Any
+ | Caret              -> START_OF_SUBJECT
+ | StartOfSubject     -> START_OF_SUBJECT
  | WordBoundary
  | NonWordBoundary
- | StartInput
- | EndInputBeforeFinalTerminator
- | EndInput
- | EndPreviousMatch
+ | EndOfSubjectOrLine
+ | EndOfSubjectOrLineEndOfSubject
+ | EndOfSubject
+ | PreviousMatchInSubject
+ | ResetStartMatch
+ | OneDataUnit
+ | ExtendedUnicodeChar
  ;
 
-backReference
- : '\\' i=backReferenceInteger   -> ^(BACK_REFERENCE INT[$backReferenceInteger.number])
- | '\\' c=OtherChar '<' name '>' -> ^(NAMED_BACK_REFERENCE NAME[$name.text]) // TODO OtherChar must be a 'k'
+cc_atom
+ : cc_literal Hyphen cc_literal -> ^(RANGE cc_literal cc_literal)
+ | shared_atom
+ | cc_literal
+ | backreference_or_octal // only octal is valid in a cc
  ;
 
-group
- : '('
-   ( '?' ( ( flags                  -> ^(FLAG_GROUP flags)
-           ) 
-           ( ':' regexAlts          -> ^(NON_CAPTURE_GROUP flags regexAlts)
-           )?
-         | ':' regexAlts            -> ^(NON_CAPTURE_GROUP ^(FLAGS ^(ENABLE) ^(DISABLE)) regexAlts)
-         | '>' regexAlts            -> ^(ATOMIC_GROUP regexAlts)
-         | '!' regexAlts            -> ^(NEGATIVE_LOOK_AHEAD regexAlts)
-         | '=' regexAlts            -> ^(POSITIVE_LOOK_AHEAD regexAlts)
-         | '<' ( '!' regexAlts      -> ^(NEGATIVE_LOOK_BEHIND regexAlts)
-               | '=' regexAlts      -> ^(POSITIVE_LOOK_BEHIND regexAlts)
-               | name '>' regexAlts -> ^(NAMED_CAPTURE_GROUP NAME[$name.text] regexAlts)
-               )
-         )
-   | regexAlts {groupCount++;}      -> ^(CAPTURE_GROUP regexAlts)
-   )
-   ')'
+shared_atom
+ : POSIXNamedSet
+ | POSIXNegatedNamedSet
+ | ControlChar
+ | DecimalDigit
+ | NotDecimalDigit
+ | HorizontalWhiteSpace
+ | NotHorizontalWhiteSpace
+ | NotNewLine
+ | CharWithProperty
+ | CharWithoutProperty
+ | NewLineSequence
+ | WhiteSpace
+ | NotWhiteSpace
+ | VerticalWhiteSpace
+ | NotVerticalWhiteSpace
+ | WordChar
+ | NotWordChar 
+ ;
+
+literal
+ : shared_literal
+ | CharacterClassEnd -> LITERAL["]"]
+ ;
+
+cc_literal
+ : shared_literal
+ | Any                 -> LITERAL["."]
+ | CharacterClassStart -> LITERAL["["]
+ | Caret               -> LITERAL["^"]
+ | QuestionMark        -> LITERAL["?"]
+ | Plus                -> LITERAL["+"]
+ | Star                -> LITERAL["*"]
+ | WordBoundary        -> LITERAL["\u0008"] // backspace
+ | EndOfSubjectOrLine  -> LITERAL["$"]
+ | Pipe                -> LITERAL["|"]
+ | OpenParen           -> LITERAL["("]
+ | CloseParen          -> LITERAL[")"]
+ ;
+
+shared_literal
+ : letter         -> LITERAL[$letter.text]
+ | digit          -> LITERAL[$digit.text]
+ | BellChar       -> LITERAL[String.valueOf((char)0x07)]
+ | EscapeChar     -> LITERAL[String.valueOf((char)0x1B)]
+ | FormFeed       -> LITERAL[String.valueOf((char)0x0C)]
+ | NewLine        -> LITERAL["\n"]
+ | CarriageReturn -> LITERAL["\r"]
+ | Tab            -> LITERAL["\t"]
+ | HexChar        -> LITERAL[">>>TODO<<<"]
+ | Quoted         -> LITERAL[$Quoted.text]
+ | BlockQuoted    -> LITERAL[$BlockQuoted.text]
+ | OpenBrace      -> LITERAL["{"]
+ | CloseBrace     -> LITERAL["}"]
+ | Comma          -> LITERAL[","]
+ | Hyphen         -> LITERAL["-"]
+ | LessThan       -> LITERAL["<"]
+ | GreaterThan    -> LITERAL[">"]
+ | SingleQuote    -> LITERAL["'"]
+ | Colon          -> LITERAL[":"]
+ | Hash           -> LITERAL["#"]
+ | Equals         -> LITERAL["="]
+ | Exclamation    -> LITERAL["!"]
+ | Ampersand      -> LITERAL["&"]
+ | OtherChar      -> LITERAL[$OtherChar.text]
+ ;
+
+number
+ : digits -> NUMBER[$digits.text]
+ ;
+
+digits
+ : digit+
+ ;
+
+digit
+ : D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9
  ;
 
 name
- : OtherChar+ // TODO check: [a-zA-Z][a-zA-Z0-9]*
+ : letters -> NAME[$letters.text]
  ;
 
-flags
- : a=singleFlags ('-' b=singleFlags?)? -> ^(FLAGS ^(ENABLE $a) ^(DISABLE $b?))
- | '-' c=singleFlags                   -> ^(FLAGS ^(ENABLE)    ^(DISABLE $c))
+letters
+ : letter+
  ;
 
-singleFlags
- : singleFlag+
+non_close_parens
+ : non_close_paren+
  ;
 
-singleFlag
- : OtherChar -> FLAG[$OtherChar.text]
+non_close_paren
+ : ~CloseParen
  ;
 
-shorthandCharacterClass
- : ShorthandCharacterClassDigit
- | ShorthandCharacterClassNonDigit
- | ShorthandCharacterClassSpace
- | ShorthandCharacterClassNonSpace
- | ShorthandCharacterClassWord
- | ShorthandCharacterClassNonWord
+letter
+ : ALC | BLC | CLC | DLC | ELC | FLC | GLC | HLC | ILC | JLC | KLC | LLC | MLC | NLC | OLC | PLC | QLC | RLC | SLC | TLC | ULC | VLC | WLC | XLC | YLC | ZLC |
+   AUC | BUC | CUC | DUC | EUC | FUC | GUC | HUC | IUC | JUC | KUC | LUC | MUC | NUC | OUC | PUC | QUC | RUC | SUC | TUC | UUC | VUC | WUC | XUC | YUC | ZUC
  ;
 
-integer
- : Digit+
- ;
+/*****************************************************************************************
+ *                                                                                       *
+ *                                   LEXER RULES                                         *
+ *                                                                                       *
+ *****************************************************************************************/
 
-backReferenceInteger returns [String number]
- : Digit
-   {
-     $number = $Digit.text;
+// QUOTING
+//
+//         \x         where x is non-alphanumeric is a literal x
+//         \Q...\E    treat enclosed characters as literal
+Quoted      : '\\' NonAlphaNumeric {setText($text.substring(1));};
+BlockQuoted : '\\Q' .* '\\E'       {setText($text.substring(2, $text.length() - 2));};
 
-     // keep looping while there is a digit ahead
-     while(input.LT(1).getType() == Digit) {
+// CHARACTERS
+//
+//         \a         alarm, that is, the BEL character (hex 07)
+//         \cx        "control-x", where x is any ASCII character
+//         \e         escape (hex 1B)
+//         \f         form feed (hex 0C)
+//         \n         newline (hex 0A)
+//         \r         carriage return (hex 0D)
+//         \t         tab (hex 09)
+//         \ddd       character with octal code ddd, or backreference
+//         \xhh       character with hex code hh
+//         \x{hhh..}  character with hex code hhh..
+BellChar       : '\\a';
+ControlChar    : '\\c' ASCII {setText($ASCII.text);};
+EscapeChar     : '\\e';
+FormFeed       : '\\f';
+NewLine        : '\\n';
+CarriageReturn : '\\r';
+Tab            : '\\t';
+EscapedDigit   : '\\' '0'..'9' {setText($text.substring(1));};
+HexChar        : '\\x' ( HexDigit HexDigit                   
+                         {
+                           int hex = Integer.valueOf($text.substring(2), 16);
+                           setText(Character.valueOf((char)hex).toString());
+                         }
+                       | '{' HexDigit HexDigit HexDigit+ '}' 
+                         {
+                           int hex = Integer.valueOf($text.substring(3, $text.length() - 1), 16);
+                           char[] utf16 = Character.toChars(hex);
+                           setText(new String(utf16));
+                         }
+                       );
 
-       // get the text of the next digit
-       String nextDigit = input.LT(1).getText();
+// CHARACTER TYPES
+//
+//         .          any character except newline;
+//                      in dotall mode, any character whatsoever
+//         \C         one data unit, even in UTF mode (best avoided)
+//         \d         a decimal digit
+//         \D         a character that is not a decimal digit
+//         \h         a horizontal white space character
+//         \H         a character that is not a horizontal white space character
+//         \N         a character that is not a newline
+//         \p{xx}     a character with the xx property
+//         \P{xx}     a character without the xx property
+//         \R         a newline sequence
+//         \s         a white space character
+//         \S         a character that is not a white space character
+//         \v         a vertical white space character
+//         \V         a character that is not a vertical white space character
+//         \w         a "word" character
+//         \W         a "non-word" character
+//         \X         an extended Unicode sequence
+//
+//       In  PCRE,  by  default, \d, \D, \s, \S, \w, and \W recognize only ASCII
+//       characters, even in a UTF mode. However, this can be changed by setting
+//       the PCRE_UCP option.
+Any                     : '.';
+OneDataUnit             : '\\C';
+DecimalDigit            : '\\d';
+NotDecimalDigit         : '\\D';
+HorizontalWhiteSpace    : '\\h';
+NotHorizontalWhiteSpace : '\\H';
+NotNewLine              : '\\N';
+CharWithProperty        : '\\p{' UnderscoreAlphaNumerics '}' {checkProperty($UnderscoreAlphaNumerics.text);};
+CharWithoutProperty     : '\\P{' UnderscoreAlphaNumerics '}' {checkProperty($UnderscoreAlphaNumerics.text);};
+NewLineSequence         : '\\R';
+WhiteSpace              : '\\s';
+NotWhiteSpace           : '\\S';
+VerticalWhiteSpace      : '\\v';
+NotVerticalWhiteSpace   : '\\V';
+WordChar                : '\\w';
+NotWordChar             : '\\W';
+ExtendedUnicodeChar     : '\\X';
 
-       // append this digit to the current number
-       String tempNumber = $number + nextDigit;
+// CHARACTER CLASSES
+//
+//         [...]       positive character class
+//         [^...]      negative character class
+//         [x-y]       range (can be used for hex characters)
+//         [[:xxx:]]   positive POSIX named set
+//         [[:^xxx:]]  negative POSIX named set
+//
+//         alnum       alphanumeric
+//         alpha       alphabetic
+//         ascii       0-127
+//         blank       space or tab
+//         cntrl       control character
+//         digit       decimal digit
+//         graph       printing, excluding space
+//         lower       lower case letter
+//         print       printing, including space
+//         punct       printing, excluding alphanumeric
+//         space       white space
+//         upper       upper case letter
+//         word        same as \w
+//         xdigit      hexadecimal digit
+//
+//       In PCRE, POSIX character set names recognize only ASCII  characters  by
+//       default,  but  some  of them use Unicode properties if PCRE_UCP is set.
+//       You can use \Q...\E inside a character class.
+CharacterClassStart  : '[';
+CharacterClassEnd    : ']';
+Caret                : '^';
+Hyphen               : '-';
+POSIXNamedSet        : '[[:' AlphaNumerics ':]]' {checkNamedSet($AlphaNumerics.text);};
+POSIXNegatedNamedSet : '[[:^' AlphaNumerics ':]]' {checkNamedSet($AlphaNumerics.text);};
 
-       // if the 'tempNumber' is more then the total 'groupCount', stop looping
-       if(Integer.valueOf(tempNumber) > this.groupCount) break;
+QuestionMark : '?';
+Plus         : '+';
+Star         : '*';
+OpenBrace    : '{';
+CloseBrace   : '}';
+Comma        : ',';
 
-       // consume the digit and append it to '$number'
-       input.consume();
-       $number = tempNumber;
-     }
-   }
- ;
+// ANCHORS AND SIMPLE ASSERTIONS
+//
+//         \b          word boundary
+//         \B          not a word boundary
+//         ^           start of subject
+//                      also after internal newline in multiline mode
+//         \A          start of subject
+//         $           end of subject
+//                      also before newline at end of subject
+//                      also before internal newline in multiline mode
+//         \Z          end of subject
+//                      also before newline at end of subject
+//         \z          end of subject
+//         \G          first matching position in subject
+WordBoundary                   : '\\b';
+NonWordBoundary                : '\\B';
+StartOfSubject                 : '\\A'; 
+EndOfSubjectOrLine             : '$';
+EndOfSubjectOrLineEndOfSubject : '\\Z'; 
+EndOfSubject                   : '\\z'; 
+PreviousMatchInSubject         : '\\G';
 
-// lexer rules
-Quotation
- : '\\Q' .* '\\E' {setText($text.substring(2, $text.length() - 2));}
- ;
+// MATCH POINT RESET
+//
+//         \K          reset start of match
+ResetStartMatch : '\\K';
 
-UnicodeScriptOrBlock        : '\\p{' ('a'..'z' | 'A'..'Z' | '_')+ '}';
-NegatedUnicodeScriptOrBlock : '\\P{' ('a'..'z' | 'A'..'Z' | '_')+ '}';
+SubroutineOrNamedReferenceStartG : '\\g';
+NamedReferenceStartK             : '\\k';
 
-ShorthandCharacterClassDigit    : '\\d';
-ShorthandCharacterClassNonDigit : '\\D';
-ShorthandCharacterClassSpace    : '\\s';
-ShorthandCharacterClassNonSpace : '\\S';
-ShorthandCharacterClassWord     : '\\w';
-ShorthandCharacterClassNonWord  : '\\W';
+Pipe        : '|';
+OpenParen   : '(';
+CloseParen  : ')';
+LessThan    : '<';
+GreaterThan : '>';
+SingleQuote : '\'';
+Colon       : ':';
+Hash        : '#';
+Equals      : '=';
+Exclamation : '!';
+Ampersand   : '&';
 
-WordBoundary                  : '\\b';
-NonWordBoundary               : '\\B';
-StartInput                    : '\\A';
-EndInputBeforeFinalTerminator : '\\Z';
-EndInput                      : '\\z';
-EndPreviousMatch              : '\\G';
+ALC : 'a';
+BLC : 'b';
+CLC : 'c';
+DLC : 'd';
+ELC : 'e';
+FLC : 'f';
+GLC : 'g';
+HLC : 'h';
+ILC : 'i';
+JLC : 'j';
+KLC : 'k';
+LLC : 'l';
+MLC : 'm';
+NLC : 'n';
+OLC : 'o';
+PLC : 'p';
+QLC : 'q';
+RLC : 'r';
+SLC : 's';
+TLC : 't';
+ULC : 'u';
+VLC : 'v';
+WLC : 'w';
+XLC : 'x';
+YLC : 'y';
+ZLC : 'z';
 
-OctalChar
- : Escape '0' ('0'..'3' OctDigit OctDigit | OctDigit? OctDigit)
-   {
-     int oct = Integer.valueOf($text.substring(2), 8);
-     setText(Character.valueOf((char)oct).toString());
-   }
- ;
+AUC : 'A';
+BUC : 'B';
+CUC : 'C';
+DUC : 'D';
+EUC : 'E';
+FUC : 'F';
+GUC : 'G';
+HUC : 'H';
+IUC : 'I';
+JUC : 'J';
+KUC : 'K';
+LUC : 'L';
+MUC : 'M';
+NUC : 'N';
+OUC : 'O';
+PUC : 'P';
+QUC : 'Q';
+RUC : 'R';
+SUC : 'S';
+TUC : 'T';
+UUC : 'U';
+VUC : 'V';
+WUC : 'W';
+XUC : 'X';
+YUC : 'Y';
+ZUC : 'Z';
 
-SmallHexChar
- : Escape 'x' HexDigit HexDigit
-   {
-     int hex = Integer.valueOf($text.substring(2), 16);
-     setText(Character.valueOf((char)hex).toString());
-   }
- ;
+D1 : '1';
+D2 : '2';
+D3 : '3';
+D4 : '4';
+D5 : '5';
+D6 : '6';
+D7 : '7';
+D8 : '8';
+D9 : '9';
+D0 : '0';
 
-UnicodeChar
- : Escape 'u' HexDigit HexDigit HexDigit HexDigit
-   {
-     int hex = Integer.valueOf($text.substring(2), 16);
-     char[] utf16 = Character.toChars(hex);
-     setText(new String(utf16));
-   }
- ;
-
-EscapeSequence
- : Escape ( 't'          {setText("\t");}
-          | 'n'          {setText("\n");}
-          | 'r'          {setText("\r");}
-          | 'f'          {setText("\f");}
-          | 'a'          {setText("\u0007");}
-          | 'e'          {setText("\u001B");}
-          | 'c' UCase
-          | NonAlphaNum  {setText($NonAlphaNum.text);}
-          )
- ;
-
-Escape             : '\\';
-Or                 : '|';
-Hyphen             : '-';
-BeginLine          : '^';
-Colon              : ':';
-EndLine            : '$';
-SquareBracketStart : '[';
-SquareBracketEnd   : ']';
-RoundBracketStart  : '(';
-RoundBracketEnd    : ')';
-CurlyBracketStart  : '{';
-CurlyBracketEnd    : '}';
-Equals             : '=';
-LessThan           : '<';
-GreaterThan        : '>';
-ExclamationMark    : '!';
-Comma              : ',';
-Plus               : '+';
-Star               : '*';
-QuestionMark       : '?';
-Dot                : '.';
-Digit              : '0'..'9';
-OtherChar          :  . ;
+OtherChar : . ;
 
 // fragments
-fragment UCase       : 'A'..'Z';
-fragment NonAlphaNum : ~('a'..'z' | 'A'..'Z' | '0'..'9');
-fragment OctDigit    : '0'..'7';
-fragment HexDigit    : '0'..'9' | 'a'..'f' | 'A'..'F';
+fragment UnderscoreAlphaNumerics : ('_' | AlphaNumeric)+;
+fragment AlphaNumerics           : AlphaNumeric+;
+fragment AlphaNumeric            : 'a'..'z' | 'A'..'Z' | '0'..'9';
+fragment NonAlphaNumeric         : ~AlphaNumeric;
+fragment HexDigit                : '0'..'9' | 'a'..'f' | 'A'..'F';
+fragment ASCII                   : '\u0000'..'\u007F';
+

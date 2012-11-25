@@ -54,322 +54,622 @@ public class PCRELexerTest {
     }
 
     @Test
-    public void QuotationTest() {
-
-        List<CommonToken> tokens = getTokens(
-                "\\Q ... \\E" +
-                "\\Q ... \\Q ... \\E" +
-                "\\Q \\ \r \n \\E"
-        );
-
-        for(CommonToken t : tokens) {
-            assertThat(t.getType(), is(PCRELexer.Quotation));
-        }
+    public void QuotedTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void UnicodeScriptOrBlockTest() {
-        CommonToken token = getToken("\\p{IsGreek}");
-        assertThat(token.getType(), is(PCRELexer.UnicodeScriptOrBlock));
-
-        token = getToken("\\p{Lu}");
-        assertThat(token.getType(), is(PCRELexer.UnicodeScriptOrBlock));
+    public void BlockQuotedTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void NegatedUnicodeScriptOrBlockTest() {
-        CommonToken token = getToken("\\P{Non_Spacing_Mark}");
-        assertThat(token.getType(), is(PCRELexer.NegatedUnicodeScriptOrBlock));
-
-        token = getToken("\\P{Lu}");
-        assertThat(token.getType(), is(PCRELexer.NegatedUnicodeScriptOrBlock));
+    public void BellCharTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void ShorthandCharacterClassDigitTest() {
-        CommonToken token = getToken("\\d");
-        assertThat(token.getType(), is(PCRELexer.ShorthandCharacterClassDigit));
+    public void ControlCharTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void ShorthandCharacterClassNonDigitTest() {
-        CommonToken token = getToken("\\D");
-        assertThat(token.getType(), is(PCRELexer.ShorthandCharacterClassNonDigit));
+    public void EscapeCharTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void ShorthandCharacterClassSpaceTest() {
-        CommonToken token = getToken("\\s");
-        assertThat(token.getType(), is(PCRELexer.ShorthandCharacterClassSpace));
+    public void FormFeedTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void ShorthandCharacterClassNonSpaceTest() {
-        CommonToken token = getToken("\\S");
-        assertThat(token.getType(), is(PCRELexer.ShorthandCharacterClassNonSpace));
+    public void NewLineTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void ShorthandCharacterClassWordTest() {
-        CommonToken token = getToken("\\w");
-        assertThat(token.getType(), is(PCRELexer.ShorthandCharacterClassWord));
+    public void CarriageReturnTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void ShorthandCharacterClassNonWordTest() {
-        CommonToken token = getToken("\\W");
-        assertThat(token.getType(), is(PCRELexer.ShorthandCharacterClassNonWord));
+    public void TabTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void WordBoundaryTest() {
-        CommonToken token = getToken("\\b");
-        assertThat(token.getType(), is(PCRELexer.WordBoundary));
+    public void EscapedDigitTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void NonWordBoundaryTest() {
-        CommonToken token = getToken("\\B");
-        assertThat(token.getType(), is(PCRELexer.NonWordBoundary));
+    public void HexCharTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void StartInputTest() {
-        CommonToken token = getToken("\\A");
-        assertThat(token.getType(), is(PCRELexer.StartInput));
+    public void AnyTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void EndInputBeforeFinalTerminatorTest() {
-        CommonToken token = getToken("\\Z");
-        assertThat(token.getType(), is(PCRELexer.EndInputBeforeFinalTerminator));
+    public void OneDataUnitTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void EndInputTest() {
-        CommonToken token = getToken("\\z");
-        assertThat(token.getType(), is(PCRELexer.EndInput));
+    public void DecimalDigitTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void EndPreviousMatchTest() {
-        CommonToken token = getToken("\\G");
-        assertThat(token.getType(), is(PCRELexer.EndPreviousMatch));
+    public void NotDecimalDigitTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void OctalCharTest() {
-        // 3 octals and the digit 7 at the end
-        List<CommonToken> tokens = getTokens("\\0377\\0123\\0777");
-
-        assertThat(tokens.size(), is(4));
-
-        assertThat(tokens.get(0).getType(), is(PCRELexer.OctalChar));
-        assertThat(tokens.get(1).getType(), is(PCRELexer.OctalChar));
-        assertThat(tokens.get(2).getType(), is(PCRELexer.OctalChar));
-
-        assertThat(tokens.get(3).getType(), is(PCRELexer.Digit));
-
-        assertThat(tokens.get(0).getText(), is(String.valueOf((char)0377)));
-        assertThat(tokens.get(1).getText(), is(String.valueOf((char)0123)));
-        assertThat(tokens.get(2).getText(), is(String.valueOf((char)077)));
+    public void HorizontalWhiteSpaceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void SmallHexCharTest() {
-        List<CommonToken> tokens = getTokens("\\xA1\\xFF\\xeA");
-
-        assertThat(tokens.size(), is(3));
-
-        assertThat(tokens.get(0).getType(), is(PCRELexer.SmallHexChar));
-        assertThat(tokens.get(1).getType(), is(PCRELexer.SmallHexChar));
-        assertThat(tokens.get(2).getType(), is(PCRELexer.SmallHexChar));
-
-        assertThat(tokens.get(0).getText(), is(String.valueOf((char)0xA1)));
-        assertThat(tokens.get(1).getText(), is(String.valueOf((char)0xFF)));
-        assertThat(tokens.get(2).getText(), is(String.valueOf((char)0xEA)));
+    public void NotHorizontalWhiteSpaceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void UnicodeCharTest() {
-        List<CommonToken> tokens = getTokens("\\uABCD\\uEF00\\u0101");
-
-        assertThat(tokens.size(), is(3));
-
-        assertThat(tokens.get(0).getType(), is(PCRELexer.UnicodeChar));
-        assertThat(tokens.get(1).getType(), is(PCRELexer.UnicodeChar));
-        assertThat(tokens.get(2).getType(), is(PCRELexer.UnicodeChar));
-
-        assertThat(tokens.get(0).getText(), is("\uABCD"));
-        assertThat(tokens.get(1).getText(), is("\uEF00"));
-        assertThat(tokens.get(2).getText(), is("\u0101"));
+    public void NotNewLineTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void EscapeSequenceTest() {
-        List<CommonToken> tokens = getTokens("\\t\\n\\r\\f\\a\\e\\cM");
-
-        assertThat(tokens.size(), is(7));
-
-        for(CommonToken t : tokens) {
-            assertThat(t.getType(), is(PCRELexer.EscapeSequence));
-        }
-
-        assertThat(tokens.get(0).getText(), is("\t"));
-        assertThat(tokens.get(1).getText(), is("\n"));
-        assertThat(tokens.get(2).getText(), is("\r"));
-        assertThat(tokens.get(3).getText(), is("\f"));
-        assertThat(tokens.get(4).getText(), is("\u0007"));
-        assertThat(tokens.get(5).getText(), is("\u001B"));
-        assertThat(tokens.get(6).getText(), is("\\cM"));
+    public void CharWithPropertyTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void EscapeTest() {
-        CommonToken token = getToken("\\");
-        assertThat(token.getType(), is(PCRELexer.Escape));
+    public void CharWithoutPropertyTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void OrTest() {
-        CommonToken token = getToken("|");
-        assertThat(token.getType(), is(PCRELexer.Or));
+    public void NewLineSequenceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void HyphenTest() {
-        CommonToken token = getToken("-");
-        assertThat(token.getType(), is(PCRELexer.Hyphen));
+    public void WhiteSpaceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void BeginLineTest() {
-        CommonToken token = getToken("^");
-        assertThat(token.getType(), is(PCRELexer.BeginLine));
+    public void NotWhiteSpaceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void ColonTest() {
-        CommonToken token = getToken(":");
-        assertThat(token.getType(), is(PCRELexer.Colon));
+    public void VerticalWhiteSpaceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void EndLineTest() {
-        CommonToken token = getToken("$");
-        assertThat(token.getType(), is(PCRELexer.EndLine));
+    public void NotVerticalWhiteSpaceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void SquareBracketStartTest() {
-        CommonToken token = getToken("[");
-        assertThat(token.getType(), is(PCRELexer.SquareBracketStart));
+    public void WordCharTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void SquareBracketEndTest() {
-        CommonToken token = getToken("]");
-        assertThat(token.getType(), is(PCRELexer.SquareBracketEnd));
+    public void NotWordCharTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void RoundBracketStartTest() {
-        CommonToken token = getToken("(");
-        assertThat(token.getType(), is(PCRELexer.RoundBracketStart));
+    public void ExtendedUnicodeCharTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void RoundBracketEndTest() {
-        CommonToken token = getToken(")");
-        assertThat(token.getType(), is(PCRELexer.RoundBracketEnd));
+    public void CharacterClassStartTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void CurlyBracketStartTest() {
-        CommonToken token = getToken("{");
-        assertThat(token.getType(), is(PCRELexer.CurlyBracketStart));
+    public void CharacterClassEndTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void CurlyBracketEndTest() {
-        CommonToken token = getToken("}");
-        assertThat(token.getType(), is(PCRELexer.CurlyBracketEnd));
+    public void CaretTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void EqualsTest() {
-        CommonToken token = getToken("=");
-        assertThat(token.getType(), is(PCRELexer.Equals));
+    public void HyphenTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void LessThanTest() {
-        CommonToken token = getToken("<");
-        assertThat(token.getType(), is(PCRELexer.LessThan));
+    public void POSIXNamedSetTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void GreaterThanTest() {
-        CommonToken token = getToken(">");
-        assertThat(token.getType(), is(PCRELexer.GreaterThan));
+    public void POSIXNegatedNamedSetTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void ExclamationMarkTest() {
-        CommonToken token = getToken("!");
-        assertThat(token.getType(), is(PCRELexer.ExclamationMark));
+    public void QuestionMarkTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void CommaTest() {
-        CommonToken token = getToken(",");
-        assertThat(token.getType(), is(PCRELexer.Comma));
+    public void PlusTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void PlusTest() {
-        CommonToken token = getToken("+");
-        assertThat(token.getType(), is(PCRELexer.Plus));
+    public void StarTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void StarTest() {
-        CommonToken token = getToken("*");
-        assertThat(token.getType(), is(PCRELexer.Star));
+    public void OpenBraceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void QuestionMarkTest() {
-        CommonToken token = getToken("?");
-        assertThat(token.getType(), is(PCRELexer.QuestionMark));
+    public void CloseBraceTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void DotTest() {
-        CommonToken token = getToken(".");
-        assertThat(token.getType(), is(PCRELexer.Dot));
+    public void CommaTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void DigitTest() {
-        List<CommonToken> tokens = getTokens("0123456789");
-
-        assertThat(tokens.size(), is(10));
-
-        for(CommonToken t : tokens) {
-            assertThat(t.getType(), is(PCRELexer.Digit));
-        }
+    public void WordBoundaryTest() throws Exception {
+        // TODO
     }
 
     @Test
-    public void OtherCharTest() {
-        // 11 chars + 26 lower case + 26 upper case
-        List<CommonToken> tokens = getTokens("~`@#%&_'\";/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    public void NonWordBoundaryTest() throws Exception {
+        // TODO
+    }
 
-        assertThat(tokens.size(), is(11 + 26 + 26));
+    @Test
+    public void StartOfSubjectTest() throws Exception {
+        // TODO
+    }
 
-        for(CommonToken t : tokens) {
-            assertThat(t.getType(), is(PCRELexer.OtherChar));
-        }
+    @Test
+    public void EndOfSubjectOrLineTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void EndOfSubjectOrLineEndOfSubjectTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void EndOfSubjectTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void PreviousMatchInSubjectTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ResetStartMatchTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void SubroutineOrNamedReferenceStartGTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void NamedReferenceStartKTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void PipeTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void OpenParenTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void CloseParenTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void LessThanTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void GreaterThanTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void SingleQuoteTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ColonTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void HashTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void EqualsTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ExclamationTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void AmpersandTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ALCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void BLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void CLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void DLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ELCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void FLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void GLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void HLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ILCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void JLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void KLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void LLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void MLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void NLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void OLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void PLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void QLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void RLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void SLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void TLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ULCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void VLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void WLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void XLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void YLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ZLCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void AUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void BUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void CUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void DUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void EUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void FUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void GUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void HUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void IUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void JUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void KUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void LUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void MUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void NUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void OUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void PUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void QUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void RUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void SUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void TUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void UUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void VUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void WUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void XUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void YUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void ZUCTest() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D1Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D2Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D3Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D4Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D5Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D6Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D7Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D8Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D9Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void D0Test() throws Exception {
+        // TODO
+    }
+
+    @Test
+    public void OtherCharTest() throws Exception {
+        // TODO
     }
 }
