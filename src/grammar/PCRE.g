@@ -620,6 +620,7 @@ shared_literal
  | LessThan       -> LITERAL["<"]
  | GreaterThan    -> LITERAL[">"]
  | SingleQuote    -> LITERAL["'"]
+ | Underscore     -> LITERAL["_"]
  | Colon          -> LITERAL[":"]
  | Hash           -> LITERAL["#"]
  | Equals         -> LITERAL["="]
@@ -825,6 +826,7 @@ CloseParen  : ')';
 LessThan    : '<';
 GreaterThan : '>';
 SingleQuote : '\'';
+Underscore  : '_';
 Colon       : ':';
 Hash        : '#';
 Equals      : '=';

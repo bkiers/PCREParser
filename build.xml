@@ -47,7 +47,7 @@
         <antcall target="compile" />
     </target>
 
-    <target name="test" depends="generate" description="Runs all the unit tests">
+    <target name="test" depends="compile">
         <junit printsummary="yes" fork="yes" haltonfailure="yes">
             <classpath refid="classpath"/>
             <formatter type="plain"/>
