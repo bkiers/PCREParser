@@ -56,280 +56,482 @@ public class PCRELexerTest {
     @Test
     public void QuotedTest() throws Exception {
 
-        String[][] tests = {
-                {"\\.", "."},
-                {"\\\\", "\\"},
-                {"\\]", "]"},
-                {"\\?", "?"},
-                {"\\=", "="}
+        String[] tests = {
+                "\\.",
+                "\\\\",
+                "\\]",
+                "\\?",
+                "\\="
         };
 
-        for(String[] test : tests) {
-            CommonToken token = getToken(test[0]);
+        for(String test : tests) {
+            CommonToken token = getToken(test);
             assertThat(token.getType(), is(PCRELexer.Quoted));
-            assertThat(token.getText(), is(test[1]));
+            assertThat(token.getText(), is(test.substring(1)));
         }
     }
 
     @Test
     public void BlockQuotedTest() throws Exception {
 
-        String[][] tests = {
-                {"\\Q\\E", ""},
-                {"\\Q \\ \\E", " \\ "},
-                {"\\Q.\\Q\\Q.\\E", ".\\Q\\Q."},
-                {"\\Q\n\n\n\\n\\E", "\n\n\n\\n"}
+        String[] tests = {
+                "\\Q\\E",
+                "\\Q \\ \\E",
+                "\\Q.\\Q\\Q.\\E",
+                "\\Q\n\n\n\\n\\E"
         };
 
-        for(String[] test : tests) {
-            CommonToken token = getToken(test[0]);
+        for(String test : tests) {
+            CommonToken token = getToken(test);
             assertThat(token.getType(), is(PCRELexer.BlockQuoted));
-            assertThat(token.getText(), is(test[1]));
+            assertThat(token.getText(), is(test.substring(2, test.length() - 2)));
         }
     }
 
     @Test
     public void BellCharTest() throws Exception {
-        // TODO
+
+        String input = "\\a";
+        String expectedOutput = "\u0007";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.BellChar));
+        assertThat(token.getText(), is(expectedOutput));
     }
 
     @Test
     public void ControlCharTest() throws Exception {
-        // TODO
+
+        String input = "\\cC";
+        String expectedOutput = "C";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.ControlChar));
+        assertThat(token.getText(), is(expectedOutput));
+
+        input = "\\cX";
+        expectedOutput = "X";
+        token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.ControlChar));
+        assertThat(token.getText(), is(expectedOutput));
     }
 
     @Test
     public void EscapeCharTest() throws Exception {
-        // TODO
+
+        String input = "\\e";
+        String expectedOutput = String.valueOf((char)0x1B);
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.EscapeChar));
+        assertThat(token.getText(), is(expectedOutput));
     }
 
     @Test
     public void FormFeedTest() throws Exception {
-        // TODO
+
+        String input = "\\f";
+        String expectedOutput = String.valueOf((char)0x0C);
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.FormFeed));
+        assertThat(token.getText(), is(expectedOutput));
     }
 
     @Test
     public void NewLineTest() throws Exception {
-        // TODO
+
+        String input = "\\n";
+        String expectedOutput = "\n";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NewLine));
+        assertThat(token.getText(), is(expectedOutput));
     }
 
     @Test
     public void CarriageReturnTest() throws Exception {
-        // TODO
+
+        String input = "\\r";
+        String expectedOutput = "\r";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.CarriageReturn));
+        assertThat(token.getText(), is(expectedOutput));
     }
 
     @Test
     public void TabTest() throws Exception {
-        // TODO
+
+        String input = "\\t";
+        String expectedOutput = "\t";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.Tab));
+        assertThat(token.getText(), is(expectedOutput));
     }
 
     @Test
     public void EscapedDigitTest() throws Exception {
-        // TODO
+
+        List<CommonToken> tokens = getTokens("\\0\\1\\2\\3\\4\\5\\6\\7\\8\\9");
+        final String expected = "0123456789";
+
+        assertThat(tokens.size(), is(expected.length()));
+
+        int index = 0;
+
+        for(CommonToken token : tokens) {
+            assertThat(token.getType(), is(PCRELexer.EscapedDigit));
+            assertThat(token.getText(), is(String.valueOf(expected.charAt(index))));
+            index++;
+        }
     }
 
     @Test
     public void HexCharTest() throws Exception {
-        // TODO
+
+        String[][] tests = {
+                {"\\xFF", String.valueOf((char)0xff)},
+                {"\\xfF", String.valueOf((char)0xff)},
+                {"\\x{03ab}", "\u03AB"},
+                {"\\x{efFF}", "\uEFFF"}
+        };
+
+        for(String[] test : tests) {
+            CommonToken token = getToken(test[0]);
+            assertThat(token.getType(), is(PCRELexer.HexChar));
+            assertThat(token.getText(), is(test[1]));
+        }
     }
 
     @Test
-    public void AnyTest() throws Exception {
-        // TODO
+    public void DotTest() throws Exception {
+
+        String input = ".";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.Dot));
     }
 
     @Test
     public void OneDataUnitTest() throws Exception {
-        // TODO
+
+        String input = "\\C";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.OneDataUnit));
     }
 
     @Test
     public void DecimalDigitTest() throws Exception {
-        // TODO
+
+        String input = "\\d";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.DecimalDigit));
     }
 
     @Test
     public void NotDecimalDigitTest() throws Exception {
-        // TODO
+
+        String input = "\\D";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NotDecimalDigit));
     }
 
     @Test
     public void HorizontalWhiteSpaceTest() throws Exception {
-        // TODO
+
+        String input = "\\h";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.HorizontalWhiteSpace));
     }
 
     @Test
     public void NotHorizontalWhiteSpaceTest() throws Exception {
-        // TODO
+
+        String input = "\\H";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NotHorizontalWhiteSpace));
     }
 
     @Test
     public void NotNewLineTest() throws Exception {
-        // TODO
+
+        String input = "\\N";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NotNewLine));
     }
 
     @Test
     public void CharWithPropertyTest() throws Exception {
-        // TODO
+
+        for(String property : PCRELexer.propertySet) {
+            CommonToken token = getToken(String.format("\\p{%s}", property));
+            assertThat(token.getType(), is(PCRELexer.CharWithProperty));
+        }
     }
 
     @Test
     public void CharWithoutPropertyTest() throws Exception {
-        // TODO
+
+        for(String property : PCRELexer.propertySet) {
+            CommonToken token = getToken(String.format("\\P{%s}", property));
+            assertThat(token.getType(), is(PCRELexer.CharWithoutProperty));
+        }
     }
 
     @Test
     public void NewLineSequenceTest() throws Exception {
-        // TODO
+
+        String input = "\\R";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NewLineSequence));
     }
 
     @Test
     public void WhiteSpaceTest() throws Exception {
-        // TODO
+
+        String input = "\\s";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.WhiteSpace));
     }
 
     @Test
     public void NotWhiteSpaceTest() throws Exception {
-        // TODO
+
+        String input = "\\S";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NotWhiteSpace));
     }
 
     @Test
     public void VerticalWhiteSpaceTest() throws Exception {
-        // TODO
+
+        String input = "\\v";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.VerticalWhiteSpace));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void NotVerticalWhiteSpaceTest() throws Exception {
-        // TODO
+
+        String input = "\\V";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NotVerticalWhiteSpace));
     }
 
     @Test
     public void WordCharTest() throws Exception {
-        // TODO
+
+        String input = "\\w";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.WordChar));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void NotWordCharTest() throws Exception {
-        // TODO
+
+        String input = "\\W";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NotWordChar));
     }
 
     @Test
     public void ExtendedUnicodeCharTest() throws Exception {
-        // TODO
+
+        String input = "\\X";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.ExtendedUnicodeChar));
     }
 
     @Test
     public void CharacterClassStartTest() throws Exception {
-        // TODO
+
+        String input = "[";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.CharacterClassStart));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void CharacterClassEndTest() throws Exception {
-        // TODO
+
+        String input = "]";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.CharacterClassEnd));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void CaretTest() throws Exception {
-        // TODO
+
+        String input = "^";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.Caret));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void HyphenTest() throws Exception {
-        // TODO
+
+        String input = "-";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.Hyphen));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void POSIXNamedSetTest() throws Exception {
-        // TODO
+
+        for(String name : PCRELexer.namedSet) {
+            CommonToken token = getToken(String.format("[[:%s:]]", name));
+            assertThat(token.getType(), is(PCRELexer.POSIXNamedSet));
+        }
     }
 
     @Test
     public void POSIXNegatedNamedSetTest() throws Exception {
-        // TODO
+
+        for(String name : PCRELexer.namedSet) {
+            CommonToken token = getToken(String.format("[[:^%s:]]", name));
+            assertThat(token.getType(), is(PCRELexer.POSIXNegatedNamedSet));
+        }
     }
 
     @Test
     public void QuestionMarkTest() throws Exception {
-        // TODO
+
+        String input = "?";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.QuestionMark));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void PlusTest() throws Exception {
-        // TODO
+
+        String input = "+";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.Plus));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void StarTest() throws Exception {
-        // TODO
+
+        String input = "*";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.Star));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void OpenBraceTest() throws Exception {
-        // TODO
+
+        String input = "{";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.OpenBrace));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void CloseBraceTest() throws Exception {
-        // TODO
+
+        String input = "}";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.CloseBrace));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void CommaTest() throws Exception {
-        // TODO
+
+        String input = ",";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.Comma));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void WordBoundaryTest() throws Exception {
-        // TODO
+
+        String input = "\\b";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.WordBoundary));
     }
 
     @Test
     public void NonWordBoundaryTest() throws Exception {
-        // TODO
+
+        String input = "\\B";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NonWordBoundary));
     }
 
     @Test
     public void StartOfSubjectTest() throws Exception {
-        // TODO
+
+        String input = "\\A";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.StartOfSubject));
     }
 
     @Test
     public void EndOfSubjectOrLineTest() throws Exception {
-        // TODO
+
+        String input = "$";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.EndOfSubjectOrLine));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void EndOfSubjectOrLineEndOfSubjectTest() throws Exception {
-        // TODO
+
+        String input = "\\Z";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.EndOfSubjectOrLineEndOfSubject));
     }
 
     @Test
     public void EndOfSubjectTest() throws Exception {
-        // TODO
+
+        String input = "\\z";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.EndOfSubject));
     }
 
     @Test
     public void PreviousMatchInSubjectTest() throws Exception {
-        // TODO
+
+        String input = "\\G";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.PreviousMatchInSubject));
     }
 
     @Test
     public void ResetStartMatchTest() throws Exception {
-        // TODO
+
+        String input = "\\K";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.ResetStartMatch));
     }
 
     @Test
     public void SubroutineOrNamedReferenceStartGTest() throws Exception {
-        // TODO
+
+        String input = "\\g";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.SubroutineOrNamedReferenceStartG));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void NamedReferenceStartKTest() throws Exception {
-        // TODO
+
+        String input = "\\k";
+        CommonToken token = getToken(input);
+        assertThat(token.getType(), is(PCRELexer.NamedReferenceStartK));
+        assertThat(token.getText(), is(input));
     }
 
     @Test
     public void PipeTest() throws Exception {
+
         String input = "|";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.Pipe));
@@ -338,6 +540,7 @@ public class PCRELexerTest {
 
     @Test
     public void OpenParenTest() throws Exception {
+
         String input = "(";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.OpenParen));
@@ -346,6 +549,7 @@ public class PCRELexerTest {
 
     @Test
     public void CloseParenTest() throws Exception {
+
         String input = ")";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.CloseParen));
@@ -354,6 +558,7 @@ public class PCRELexerTest {
 
     @Test
     public void LessThanTest() throws Exception {
+
         String input = "<";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.LessThan));
@@ -362,6 +567,7 @@ public class PCRELexerTest {
 
     @Test
     public void GreaterThanTest() throws Exception {
+
         String input = ">";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.GreaterThan));
@@ -370,6 +576,7 @@ public class PCRELexerTest {
 
     @Test
     public void SingleQuoteTest() throws Exception {
+
         String input = "'";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.SingleQuote));
@@ -378,6 +585,7 @@ public class PCRELexerTest {
 
     @Test
     public void UnderscoreTest() throws Exception {
+
         String input = "_";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.Underscore));
@@ -386,6 +594,7 @@ public class PCRELexerTest {
 
     @Test
     public void ColonTest() throws Exception {
+
         String input = ":";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.Colon));
@@ -394,6 +603,7 @@ public class PCRELexerTest {
 
     @Test
     public void HashTest() throws Exception {
+
         String input = "#";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.Hash));
@@ -402,6 +612,7 @@ public class PCRELexerTest {
 
     @Test
     public void EqualsTest() throws Exception {
+
         String input = "=";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.Equals));
@@ -410,6 +621,7 @@ public class PCRELexerTest {
 
     @Test
     public void ExclamationTest() throws Exception {
+
         String input = "!";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.Exclamation));
@@ -418,6 +630,7 @@ public class PCRELexerTest {
 
     @Test
     public void AmpersandTest() throws Exception {
+
         String input = "&";
         CommonToken token = getToken(input);
         assertThat(token.getType(), is(PCRELexer.Ampersand));

@@ -36,6 +36,7 @@ options {
 
 tokens {
   ALTERNATIVE;
+  ANY;
   ASSERT;
   ATOMIC_GROUPING;
   BACKTACK_CONTROL_ACCEPT;
@@ -134,12 +135,12 @@ tokens {
 
 @lexer::members {
   
-  private final Set<String> namedSet = new HashSet<String>(Arrays.asList("alnum", "alpha", "ascii", "blank", "cntrl", 
+  protected static final Set<String> namedSet = new HashSet<String>(Arrays.asList("alnum", "alpha", "ascii", "blank", "cntrl", 
                 "digit", "graph", "lower", "print", "punct", "space", "upper", "word", "xdigit"));
 
-  private final Set<String> optionSet = new HashSet<String>(Arrays.asList("NO_START_OPT", "UTF8", "UTF16", "UCP"));
+  protected static final Set<String> optionSet = new HashSet<String>(Arrays.asList("NO_START_OPT", "UTF8", "UTF16", "UCP"));
                 
-  private final Set<String> propertySet = new HashSet<String>(Arrays.asList("C", "Cc", "Cf", "Cn", "Co", "Cs", "L", "Ll", "Lm", 
+  protected static final Set<String> propertySet = new HashSet<String>(Arrays.asList("C", "Cc", "Cf", "Cn", "Co", "Cs", "L", "Ll", "Lm", 
                 "Lo", "Lt", "Lu", "L", "M", "Mc", "Me", "Mn", "N", "Nd", "Nl", "No", "P", "Pc", "Pd", "Pe", "Pf", 
                 "Pi", "Po", "Ps", "S", "Sc", "Sk", "Sm", "So", "Z", "Zl", "Zp", "Zs", "Xan", "Xps", "Xsp", "Xwd", 
                 "Arabic", "Armenian", "Avestan", "Balinese", "Bamum", "Batak", "Bengali", "Bopomofo", "Brahmi", 
@@ -157,19 +158,19 @@ tokens {
                 "Thaana", "Thai", "Tibetan", "Tifinagh", "Ugaritic", "Vai", "Yi"));
                 
   private void checkNamedSet(String name) {
-    if(!this.namedSet.contains(name)) {
+    if(!namedSet.contains(name)) {
       throw new RuntimeException("unsupported named set: " + name);
     }
   }
   
   private void checkOption(String name) {
-    if(!this.namedSet.contains(name)) {
+    if(!namedSet.contains(name)) {
       throw new RuntimeException("unsupported option: " + name);
     }
   }
   
   private void checkProperty(String name) {
-    if(!this.propertySet.contains(name)) {
+    if(!propertySet.contains(name)) {
       throw new RuntimeException("unsupported character property: " + name);
     }
   }
@@ -540,7 +541,7 @@ atom
  | backtrack_control
  | newline_convention
  | callout
- | Any
+ | Dot                -> ANY
  | Caret              -> START_OF_SUBJECT
  | StartOfSubject     -> START_OF_SUBJECT
  | WordBoundary
@@ -588,7 +589,7 @@ literal
 
 cc_literal
  : shared_literal
- | Any                 -> LITERAL["."]
+ | Dot                 -> LITERAL["."]
  | CharacterClassStart -> LITERAL["["]
  | Caret               -> LITERAL["^"]
  | QuestionMark        -> LITERAL["?"]
@@ -604,13 +605,13 @@ cc_literal
 shared_literal
  : letter         -> LITERAL[$letter.text]
  | digit          -> LITERAL[$digit.text]
- | BellChar       -> LITERAL[String.valueOf((char)0x07)]
- | EscapeChar     -> LITERAL[String.valueOf((char)0x1B)]
- | FormFeed       -> LITERAL[String.valueOf((char)0x0C)]
- | NewLine        -> LITERAL["\n"]
- | CarriageReturn -> LITERAL["\r"]
- | Tab            -> LITERAL["\t"]
- | HexChar        -> LITERAL[">>>TODO<<<"]
+ | BellChar       -> LITERAL[$BellChar.text]
+ | EscapeChar     -> LITERAL[$EscapeChar.text]
+ | FormFeed       -> LITERAL[$FormFeed.text]
+ | NewLine        -> LITERAL[$NewLine.text]
+ | CarriageReturn -> LITERAL[$CarriageReturn.text]
+ | Tab            -> LITERAL[$Tab.text]
+ | HexChar        -> LITERAL[$HexChar.text]
  | Quoted         -> LITERAL[$Quoted.text]
  | BlockQuoted    -> LITERAL[$BlockQuoted.text]
  | OpenBrace      -> LITERAL["{"]
@@ -687,13 +688,13 @@ BlockQuoted : '\\Q' .* '\\E'       {setText($text.substring(2, $text.length() - 
 //         \ddd       character with octal code ddd, or backreference
 //         \xhh       character with hex code hh
 //         \x{hhh..}  character with hex code hhh..
-BellChar       : '\\a';
+BellChar       : '\\a' {setText("\u0007");};
 ControlChar    : '\\c' ASCII {setText($ASCII.text);};
-EscapeChar     : '\\e';
-FormFeed       : '\\f';
-NewLine        : '\\n';
-CarriageReturn : '\\r';
-Tab            : '\\t';
+EscapeChar     : '\\e' {setText(String.valueOf((char)0x1B));};
+FormFeed       : '\\f' {setText(String.valueOf((char)0x0C));};
+NewLine        : '\\n' {setText("\n");};
+CarriageReturn : '\\r' {setText("\r");};
+Tab            : '\\t' {setText("\t");};
 EscapedDigit   : '\\' '0'..'9' {setText($text.substring(1));};
 HexChar        : '\\x' ( HexDigit HexDigit                   
                          {
@@ -732,7 +733,7 @@ HexChar        : '\\x' ( HexDigit HexDigit
 //       In  PCRE,  by  default, \d, \D, \s, \S, \w, and \W recognize only ASCII
 //       characters, even in a UTF mode. However, this can be changed by setting
 //       the PCRE_UCP option.
-Any                     : '.';
+Dot                     : '.';
 OneDataUnit             : '\\C';
 DecimalDigit            : '\\d';
 NotDecimalDigit         : '\\D';
