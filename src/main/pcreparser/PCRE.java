@@ -10,25 +10,22 @@ import org.antlr.stringtemplate.StringTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class PCRE {
 
-    private final CommonTree root;
-    private final String[] tokenNames;
     private final PCREParser parser;
 
-    public PCRE(String regex) throws RecognitionException {
+    public PCRE(String regex) {
+        try {
+            PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
+            parser = new PCREParser(new CommonTokenStream(lexer));
 
-        PCRELexer lexer = new PCRELexer(new ANTLRStringStream(regex));
-        parser = new PCREParser(new CommonTokenStream(lexer));
-
-        tokenNames = parser.getTokenNames();
-        ParserRuleReturnScope capture0 = parser.parse();
-        root = (CommonTree)capture0.getTree();
-
-        parser.captureReturns.put(0, capture0);
+            ParserRuleReturnScope capture0 = parser.parse();
+            parser.captureReturns.put(0, capture0);
+        }
+        catch (RecognitionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String getASCIITree() {
@@ -138,7 +135,7 @@ public class PCRE {
                     indent += (childListStack.get(i).size() > 0) ? "|  " : "   ";
                 }
 
-                String tokenName = tokenNames[tree.getType()];
+                String tokenName = PCREParser.tokenNames[tree.getType()];
                 String tokenText = tree.getText();
 
                 builder.append(indent)
@@ -153,11 +150,4 @@ public class PCRE {
             }
         }
     }
-
-        public static void main(String[] args) throws Exception {
-            PCRE pcre = new PCRE("(a)(a)(a)(a)(a)(a)(a)(a)(a)(a)(a)\\11");
-            System.out.println(pcre.getASCIITree());
-            //System.out.println(pcre.getDOTTree(1));
-            //System.out.println(pcre.getLispTree(1));
-        }
 }
