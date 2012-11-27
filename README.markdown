@@ -10,6 +10,8 @@ compatible regular expressions) and produce an abstract syntax tree (AST) of suc
 To get the library, checkout the source and run the `jar` target from the Ant build file, or 
 [download](https://github.com/bkiers/PCREParser/blob/master/PCREParser-0.3.jar) the jar.
 
+You can also try the parser online here: [pcreparser.appspot.com](http://pcreparser.appspot.com/)
+
 ### Some examples
 
 The main class of this library is the `pcreparser.PCRE` class. Below are some examples of supported functionality.

@@ -28,11 +28,11 @@ public class PCRE {
         }
     }
 
-    public String getASCIITree() {
-        return getASCIITree(0);
+    public String toStringASCII() {
+        return toStringASCII(0);
     }
 
-    public String getASCIITree(String name) {
+    public String toStringASCII(String name) {
 
         StringBuilder builder = new StringBuilder();
         walk(getCommonTree(name), builder);
@@ -40,7 +40,7 @@ public class PCRE {
         return builder.toString();
     }
 
-    public String getASCIITree(int group) {
+    public String toStringASCII(int group) {
 
         StringBuilder builder = new StringBuilder();
         walk(getCommonTree(group), builder);
@@ -74,17 +74,17 @@ public class PCRE {
         return (CommonTree)retval.getTree();
     }
 
-    public String getDOTTree() {
-        return getDOTTree(0);
+    public String toStringDOT() {
+        return toStringDOT(0);
     }
 
-    public String getDOTTree(int group) {
+    public String toStringDOT(int group) {
         DOTTreeGenerator gen = new DOTTreeGenerator();
         StringTemplate st = gen.toDOT(getCommonTree(group));
         return st.toString();
     }
 
-    public String getDOTTree(String name) {
+    public String toStringDOT(String name) {
         DOTTreeGenerator gen = new DOTTreeGenerator();
         StringTemplate st = gen.toDOT(getCommonTree(name));
         return st.toString();
@@ -94,15 +94,15 @@ public class PCRE {
         return parser.captureReturns.size() - 1;
     }
 
-    public String getLispTree() {
-        return getLispTree(0);
+    public String toStringLisp() {
+        return toStringLisp(0);
     }
 
-    public String getLispTree(String name) {
+    public String toStringLisp(String name) {
         return getCommonTree(name).toStringTree();
     }
 
-    public String getLispTree(int group) {
+    public String toStringLisp(int group) {
         return getCommonTree(group).toStringTree();
     }
 
@@ -159,6 +159,6 @@ public class PCRE {
         }
 
         PCRE pcre = new PCRE(args[0]);
-        System.out.println(pcre.getASCIITree());
+        System.out.println(pcre.toStringASCII());
     }
 }

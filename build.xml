@@ -63,7 +63,7 @@
         <unzip src="lib/antlr-runtime-3.4.jar" dest="${main.build.dir}">
         </unzip>
         <tstamp/>
-        <jar destfile="${build.dir}/${jar.name}" whenmanifestonly="fail">
+        <jar destfile="${jar.name}" whenmanifestonly="fail">
             <fileset dir="${main.build.dir}">
                 <exclude name="**/*.html"/>
             </fileset>

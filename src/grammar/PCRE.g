@@ -285,11 +285,12 @@ quantifier_type
 //       default,  but  some  of them use Unicode properties if PCRE_UCP is set.
 //       You can use \Q...\E inside a character class.
 character_class
- : '[' {insideCharacterClass=true;} '^' CharacterClassEnd cc_atom* ']' {insideCharacterClass=false;}                        -> ^(NEGATED_CHARACTER_CLASS LITERAL["]"] cc_atom*)
- | '[' {insideCharacterClass=true;} '^' cc_atom+ ']' {insideCharacterClass=false;}                                          -> ^(NEGATED_CHARACTER_CLASS cc_atom+)
- | '[' {insideCharacterClass=true;} CharacterClassEnd Hyphen a=cc_atom_end_range cc_atom* ']' {insideCharacterClass=false;} -> ^(CHARACTER_CLASS ^(RANGE LITERAL["]"] cc_atom_end_range) cc_atom*)
- | '[' {insideCharacterClass=true;} CharacterClassEnd cc_atom* ']' {insideCharacterClass=false;}                            -> ^(CHARACTER_CLASS LITERAL["]"] cc_atom*)
- | '[' {insideCharacterClass=true;} cc_atom+ ']' {insideCharacterClass=false;}                                              -> ^(CHARACTER_CLASS cc_atom+)
+ : '[' {insideCharacterClass=true;} '^' CharacterClassEnd Hyphen a=cc_atom_end_range cc_atom* ']' {insideCharacterClass=false;} -> ^(NEGATED_CHARACTER_CLASS ^(RANGE LITERAL["]"] cc_atom_end_range) cc_atom*)
+ | '[' {insideCharacterClass=true;} '^' CharacterClassEnd cc_atom* ']' {insideCharacterClass=false;}                            -> ^(NEGATED_CHARACTER_CLASS LITERAL["]"] cc_atom*)
+ | '[' {insideCharacterClass=true;} '^' cc_atom+ ']' {insideCharacterClass=false;}                                              -> ^(NEGATED_CHARACTER_CLASS cc_atom+)
+ | '[' {insideCharacterClass=true;} CharacterClassEnd Hyphen a=cc_atom_end_range cc_atom* ']' {insideCharacterClass=false;}     -> ^(CHARACTER_CLASS ^(RANGE LITERAL["]"] cc_atom_end_range) cc_atom*)
+ | '[' {insideCharacterClass=true;} CharacterClassEnd cc_atom* ']' {insideCharacterClass=false;}                                -> ^(CHARACTER_CLASS LITERAL["]"] cc_atom*)
+ | '[' {insideCharacterClass=true;} cc_atom+ ']' {insideCharacterClass=false;}                                                  -> ^(CHARACTER_CLASS cc_atom+)
  ;
 
 cc_atom_end_range
