@@ -3,7 +3,7 @@
 
     <property name="version"          value="0.2" />
     <property name="project.name"     value="PCREParser" />
-    <property name="main.class"       value="pcreparser.Main" />
+    <property name="main.class"       value="pcreparser.PCRE" />
     <property name="combined.grammar" value="src/grammar/PCRE.g" />
     <property name="package"          value="pcreparser" />
     <property name="build.dir"        value="build" />

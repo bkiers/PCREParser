@@ -165,20 +165,12 @@ public class PCRELexerTest {
     }
 
     @Test
-    public void EscapedDigitTest() throws Exception {
+    public void BackslashTest() throws Exception {
 
-        List<CommonToken> tokens = getTokens("\\0\\1\\2\\3\\4\\5\\6\\7\\8\\9");
-        final String expected = "0123456789";
+        CommonToken token = getToken("\\");
 
-        assertThat(tokens.size(), is(expected.length()));
-
-        int index = 0;
-
-        for(CommonToken token : tokens) {
-            assertThat(token.getType(), is(PCRELexer.EscapedDigit));
-            assertThat(token.getText(), is(String.valueOf(expected.charAt(index))));
-            index++;
-        }
+        assertThat(token.getType(), is(PCRELexer.Backslash));
+        assertThat(token.getText(), is("\\"));
     }
 
     @Test

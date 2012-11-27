@@ -38,7 +38,7 @@ tokens {
   ALTERNATIVE;
   ANY;
   ASSERT;
-  ATOMIC_GROUPING;
+  ATOMIC_GROUP;
   BACKTACK_CONTROL_ACCEPT;
   BACKTACK_CONTROL_COMMIT;
   BACKTACK_CONTROL_FAIL;
@@ -126,11 +126,27 @@ tokens {
   import java.util.Set;
   import java.util.HashSet;
   import java.util.Arrays;
+  import java.util.Map;
+  import java.util.TreeMap;
 }
 
 @parser::members {
 
   public static final String HUGE_NUMBER = String.valueOf(Integer.MAX_VALUE);
+  
+  protected Map<Integer, ParserRuleReturnScope> captureReturns = new TreeMap<Integer, ParserRuleReturnScope>();
+  protected Map<String, ParserRuleReturnScope> namedReturns = new TreeMap<String, ParserRuleReturnScope>();
+  
+  private boolean insideCharacterClass = false;
+      
+  private void addNumberedMatchGroup(ParserRuleReturnScope value) {
+    int group = captureReturns.size() + 1;
+    captureReturns.put(group, value);
+  }
+  
+  private void addNamedMatchGroup(String name, ParserRuleReturnScope value) {
+    namedReturns.put(name, value);
+  }
 }
 
 @lexer::members {
@@ -202,7 +218,7 @@ first_alternative
  ;
 
 alternative
- : element+ -> ^(ALTERNATIVE element+)
+ : element* -> ^(ALTERNATIVE element*)
  ;
 
 element
@@ -269,11 +285,11 @@ quantifier_type
 //       default,  but  some  of them use Unicode properties if PCRE_UCP is set.
 //       You can use \Q...\E inside a character class.
 character_class
- : '[' '^' CharacterClassEnd cc_atom* ']'                        -> ^(NEGATED_CHARACTER_CLASS LITERAL["]"] cc_atom*)
- | '[' '^' cc_atom+ ']'                                          -> ^(NEGATED_CHARACTER_CLASS cc_atom+)
- | '[' CharacterClassEnd Hyphen a=cc_atom_end_range cc_atom* ']' -> ^(CHARACTER_CLASS ^(RANGE LITERAL["]"] cc_atom_end_range) cc_atom*)
- | '[' CharacterClassEnd cc_atom* ']'                            -> ^(CHARACTER_CLASS LITERAL["]"] cc_atom*)
- | '[' cc_atom+ ']'                                              -> ^(CHARACTER_CLASS cc_atom+)
+ : '[' {insideCharacterClass=true;} '^' CharacterClassEnd cc_atom* ']' {insideCharacterClass=false;}                        -> ^(NEGATED_CHARACTER_CLASS LITERAL["]"] cc_atom*)
+ | '[' {insideCharacterClass=true;} '^' cc_atom+ ']' {insideCharacterClass=false;}                                          -> ^(NEGATED_CHARACTER_CLASS cc_atom+)
+ | '[' {insideCharacterClass=true;} CharacterClassEnd Hyphen a=cc_atom_end_range cc_atom* ']' {insideCharacterClass=false;} -> ^(CHARACTER_CLASS ^(RANGE LITERAL["]"] cc_atom_end_range) cc_atom*)
+ | '[' {insideCharacterClass=true;} CharacterClassEnd cc_atom* ']' {insideCharacterClass=false;}                            -> ^(CHARACTER_CLASS LITERAL["]"] cc_atom*)
+ | '[' {insideCharacterClass=true;} cc_atom+ ']' {insideCharacterClass=false;}                                              -> ^(CHARACTER_CLASS cc_atom+)
  ;
 
 cc_atom_end_range
@@ -304,8 +320,8 @@ backreference
  ;
 
 backreference_or_octal
- : EscapedDigit -> ^(NUMBERED_BACKREFERENCE NUMBER[$EscapedDigit.text])
-   // TODO: consume() Digit's until no capture group exists
+ : octal_char
+ | Backslash digit -> ^(NUMBERED_BACKREFERENCE NUMBER[$digit.text])
  ;
 
 // CAPTURING
@@ -322,13 +338,16 @@ backreference_or_octal
 //
 //         (?>...)         atomic, non-capturing group
 capture
- : '(' '?' '<' name '>' regex ')'     -> ^(NAMED_CAPTURING_GROUP_PERL name regex)
- | '(' '?''\'' name '\'' regex ')'    -> ^(NAMED_CAPTURING_GROUP_PERL name regex) 
- | '(' '?' 'P' '<' name '>' regex ')' -> ^(NAMED_CAPTURING_GROUP_PYTHON name regex)
- | '(' '?' ':' regex ')'              -> ^(NON_CAPTURING_GROUP regex)
- | '(' '?' '|' regex ')'              -> ^(NON_CAPTURING_GROUP_RESET regex)
- | '(' '?' '>' regex ')'              -> ^(ATOMIC_GROUPING regex)
- | '(' regex ')'                      -> ^(CAPTURING_GROUP regex)
+ : '(' {addNumberedMatchGroup(retval);} '?' '<' name '>' {addNamedMatchGroup($name.text, retval);} regex ')'     -> ^(NAMED_CAPTURING_GROUP_PERL name regex)
+ | '(' {addNumberedMatchGroup(retval);} '?''\'' name '\'' {addNamedMatchGroup($name.text, retval);} regex ')'    -> ^(NAMED_CAPTURING_GROUP_PERL name regex) 
+ | '(' {addNumberedMatchGroup(retval);} '?' 'P' '<' name '>' {addNamedMatchGroup($name.text, retval);} regex ')' -> ^(NAMED_CAPTURING_GROUP_PYTHON name regex)
+ | '(' {addNumberedMatchGroup(retval);} regex ')'                                                                -> ^(CAPTURING_GROUP regex)
+ ;
+
+non_capture
+ : '(' '?' ':' regex ')' -> ^(NON_CAPTURING_GROUP regex)
+ | '(' '?' '|' regex ')' -> ^(NON_CAPTURING_GROUP_RESET regex)
+ | '(' '?' '>' regex ')' -> ^(ATOMIC_GROUP regex)
  ;
 
 // COMMENT
@@ -448,12 +467,12 @@ conditional
  | '(' '?' '(' '-' number ')' t=regex ('|' f=regex)? ')'              -> ^(REFERENCE_CONDITION_RELATIVE_MINUS number ^(YES $t) ^(NO $f?))
  | '(' '?' '(' '<' name '>' ')' t=regex ('|' f=regex)? ')'            -> ^(NAMED_REFERENCE_CONDITION_PERL name ^(YES $t) ^(NO $f?))
  | '(' '?' '(' '\'' name '\'' ')' t=regex ('|' f=regex)? ')'          -> ^(NAMED_REFERENCE_CONDITION_PERL name ^(YES $t) ^(NO $f?))
- | '(' '?' '(' name ')' t=regex ('|' f=regex)? ')'                    -> ^(NAMED_REFERENCE_CONDITION name ^(YES $t) ^(NO $f?))
- | '(' '?' '(' 'R' ')' t=regex ('|' f=regex)? ')'                     -> ^(OVERALL_RECURSION_CONDITION ^(YES $t) ^(NO $f?))
  | '(' '?' '(' 'R' number ')' t=regex ('|' f=regex)? ')'              -> ^(SPECIFIC_GROUP_RECURSION_CONDITION number ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' 'R' ')' t=regex ('|' f=regex)? ')'                     -> ^(OVERALL_RECURSION_CONDITION ^(YES $t) ^(NO $f?))
  | '(' '?' '(' 'R' '&' name ')' t=regex ('|' f=regex)? ')'            -> ^(SPECIFIC_RECURSION_CONDITION name ^(YES $t) ^(NO $f?))
  | '(' '?' '(' 'D' 'E' 'F' 'I' 'N' 'E' ')' t=regex ('|' f=regex)? ')' -> ^(DEFINE ^(YES $t) ^(NO $f?))
  | '(' '?' '(' 'a' 's' 's' 'e' 'r' 't' ')' t=regex ('|' f=regex)? ')' -> ^(ASSERT ^(YES $t) ^(NO $f?))
+ | '(' '?' '(' name ')' t=regex ('|' f=regex)? ')'                    -> ^(NAMED_REFERENCE_CONDITION name ^(YES $t) ^(NO $f?)) 
  ;
 
 // BACKTRACKING CONTROL
@@ -491,7 +510,7 @@ backtrack_control
  ;
 
 // NEWLINE CONVENTIONS
-//
+//capture
 //       These are recognized only at the very start of the pattern or  after  a
 //       (*BSR_...), (*UTF8), (*UTF16) or (*UCP) option.
 //
@@ -533,6 +552,7 @@ atom
  | literal
  | character_class
  | capture
+ | non_capture
  | comment
  | option
  | look_around
@@ -603,7 +623,8 @@ cc_literal
  ;
 
 shared_literal
- : letter         -> LITERAL[$letter.text]
+ : octal_char
+ | letter         -> LITERAL[$letter.text]
  | digit          -> LITERAL[$digit.text]
  | BellChar       -> LITERAL[$BellChar.text]
  | EscapeChar     -> LITERAL[$EscapeChar.text]
@@ -634,6 +655,17 @@ number
  : digits -> NUMBER[$digits.text]
  ;
 
+octal_char
+ : ( Backslash (D0 | D1 | D2 | D3) octal_digit octal_digit
+   | Backslash octal_digit octal_digit                     
+   )
+   -> LITERAL[String.valueOf((char)Integer.parseInt($text.substring(1), 8))]
+ ;
+
+octal_digit
+ : D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7
+ ;
+ 
 digits
  : digit+
  ;
@@ -695,7 +727,7 @@ FormFeed       : '\\f' {setText(String.valueOf((char)0x0C));};
 NewLine        : '\\n' {setText("\n");};
 CarriageReturn : '\\r' {setText("\r");};
 Tab            : '\\t' {setText("\t");};
-EscapedDigit   : '\\' '0'..'9' {setText($text.substring(1));};
+Backslash      : '\\';
 HexChar        : '\\x' ( HexDigit HexDigit                   
                          {
                            int hex = Integer.valueOf($text.substring(2), 16);
