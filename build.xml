@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="PCREParser" default="run">
 
-    <property name="version"          value="0.2" />
+    <property name="version"          value="0.3" />
     <property name="project.name"     value="PCREParser" />
     <property name="main.class"       value="pcreparser.PCRE" />
     <property name="combined.grammar" value="src/grammar/PCRE.g" />
@@ -60,6 +60,8 @@
     </target>
 
     <target name="jar" depends="test">
+        <unzip src="lib/antlr-runtime-3.4.jar" dest="${main.build.dir}">
+        </unzip>
         <tstamp/>
         <jar destfile="${build.dir}/${jar.name}" whenmanifestonly="fail">
             <fileset dir="${main.build.dir}">

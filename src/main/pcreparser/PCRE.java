@@ -150,4 +150,15 @@ public class PCRE {
             }
         }
     }
+
+    public static void main(String[] args) {
+
+        if(args.length != 1) {
+            System.err.println("usage: java -jar PCRE.jar 'regex-pattern'");
+            System.exit(42);
+        }
+
+        PCRE pcre = new PCRE(args[0]);
+        System.out.println(pcre.getASCIITree());
+    }
 }
