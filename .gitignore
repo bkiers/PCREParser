@@ -6,3 +6,7 @@
 *.tokens
 PCRELexer.java
 PCREParser.java
+
+# binaries
+build/
+target/
