@@ -1,0 +1,8 @@
+# IDE files
+.idea/
+*.iml
+
+# generated files
+*.tokens
+PCRELexer.java
+PCREParser.java
