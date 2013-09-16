@@ -536,12 +536,12 @@ public class PCREParserTest {
 
         // named captures
 
-        final String name = "JustAName";
+        final String name = "Just_A_Name";
 
         Object[][] tests = {
-                {String.format("(?<%s>regex)", name) ,PCRELexer.NAMED_CAPTURING_GROUP_PERL},
-                {String.format("(?'%s'regex)", name) ,PCRELexer.NAMED_CAPTURING_GROUP_PERL},
-                {String.format("(?P<%s>regex)", name) ,PCRELexer.NAMED_CAPTURING_GROUP_PYTHON}
+                {String.format("(?<%s>regex)", name), PCRELexer.NAMED_CAPTURING_GROUP_PERL},
+                {String.format("(?'%s'regex)", name), PCRELexer.NAMED_CAPTURING_GROUP_PERL},
+                {String.format("(?P<%s>regex)", name), PCRELexer.NAMED_CAPTURING_GROUP_PYTHON}
         };
 
         for(Object[] test : tests) {

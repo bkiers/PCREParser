@@ -680,7 +680,7 @@ name
  ;
 
 letters
- : letter+
+ : (letter | Underscore)+
  ;
 
 non_close_parens
