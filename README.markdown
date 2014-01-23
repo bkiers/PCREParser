@@ -5,6 +5,8 @@
 An ANTLR grammar that generates a parser able to parse [PCRE](http://www.pcre.org/pcre.txt) (Perl 
 compatible regular expressions) and produce an abstract syntax tree (AST) of such expressions.
 
+For a JavaScript version, checkout [the js branch](https://github.com/bkiers/PCREParser/tree/js).
+
 ### Download/get library
 
 To get the library, checkout the source and run the `jar` target from the Ant build file, or 
