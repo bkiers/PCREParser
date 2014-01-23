@@ -29,6 +29,7 @@ grammar PCRE;
 
 options {
   ASTLabelType=CommonTree;
+  language=JavaScript;
   output=AST;
   backtrack=true;
   memoize=true;
@@ -113,83 +114,9 @@ tokens {
   YES;
 }
 
-@parser::header {
-  package pcreparser;
-
-  import java.util.Map;
-  import java.util.TreeMap;
-}
-
-@lexer::header {
-  package pcreparser;
-  
-  import java.util.Set;
-  import java.util.HashSet;
-  import java.util.Arrays;
-  import java.util.Map;
-  import java.util.TreeMap;
-}
-
 @parser::members {
-
-  public static final String HUGE_NUMBER = String.valueOf(Integer.MAX_VALUE);
-  
-  protected Map<Integer, ParserRuleReturnScope> captureReturns = new TreeMap<Integer, ParserRuleReturnScope>();
-  protected Map<String, ParserRuleReturnScope> namedReturns = new TreeMap<String, ParserRuleReturnScope>();
-  
-  private boolean insideCharacterClass = false;
-      
-  private void addNumberedMatchGroup(ParserRuleReturnScope value) {
-    int group = captureReturns.size() + 1;
-    captureReturns.put(group, value);
-  }
-  
-  private void addNamedMatchGroup(String name, ParserRuleReturnScope value) {
-    namedReturns.put(name, value);
-  }
-}
-
-@lexer::members {
-  
-  protected static final Set<String> namedSet = new HashSet<String>(Arrays.asList("alnum", "alpha", "ascii", "blank", "cntrl", 
-                "digit", "graph", "lower", "print", "punct", "space", "upper", "word", "xdigit"));
-
-  protected static final Set<String> optionSet = new HashSet<String>(Arrays.asList("NO_START_OPT", "UTF8", "UTF16", "UCP"));
-                
-  protected static final Set<String> propertySet = new HashSet<String>(Arrays.asList("C", "Cc", "Cf", "Cn", "Co", "Cs", "L", "Ll", "Lm", 
-                "Lo", "Lt", "Lu", "L", "M", "Mc", "Me", "Mn", "N", "Nd", "Nl", "No", "P", "Pc", "Pd", "Pe", "Pf", 
-                "Pi", "Po", "Ps", "S", "Sc", "Sk", "Sm", "So", "Z", "Zl", "Zp", "Zs", "Xan", "Xps", "Xsp", "Xwd", 
-                "Arabic", "Armenian", "Avestan", "Balinese", "Bamum", "Batak", "Bengali", "Bopomofo", "Brahmi", 
-                "Braille", "Buginese", "Buhid", "Canadian_Aboriginal", "Carian", "Chakma", "Cham", "Cherokee", 
-                "Common", "Coptic", "Cuneiform", "Cypriot", "Cyrillic", "Deseret", "Devanagari", "Egyptian_Hieroglyphs", 
-                "Ethiopic", "Georgian", "Glagolitic", "Gothic", "Greek", "Gujarati", "Gurmukhi", "Han", "Hangul", 
-                "Hanunoo", "Hebrew", "Hiragana", "Imperial_Aramaic", "Inherited", "Inscriptional_Pahlavi", 
-                "Inscriptional_Parthian", "Javanese", "Kaithi", "Kannada", "Katakana", "Kayah_Li", "Kharoshthi", 
-                "Khmer", "Lao", "Latin", "Lepcha", "Limbu", "Linear_B", "Lisu", "Lycian", "Lydian", "Malayalam",
-                "Mandaic", "Meetei_Mayek", "Meroitic_Cursive", "Meroitic_Hieroglyphs", "Miao", "Mongolian", "Myanmar", 
-                "New_Tai_Lue", "Nko", "Ogham", "Old_Italic", "Old_Persian", "Old_South_Arabian", "Old_Turkic", 
-                "Ol_Chiki", "Oriya", "Osmanya", "Phags_Pa", "Phoenician", "Rejang", "Runic", "Samaritan", 
-                "Saurashtra", "Sharada", "Shavian", "Sinhala", "Sora_Sompeng", "Sundanese", "Syloti_Nagri", 
-                "Syriac", "Tagalog", "Tagbanwa", "Tai_Le", "Tai_Tham", "Tai_Viet", "Takri", "Tamil", "Telugu", 
-                "Thaana", "Thai", "Tibetan", "Tifinagh", "Ugaritic", "Vai", "Yi"));
-                
-  private void checkNamedSet(String name) {
-    if(!namedSet.contains(name)) {
-      throw new RuntimeException("unsupported named set: " + name);
-    }
-  }
-  
-  private void checkOption(String name) {
-    if(!namedSet.contains(name)) {
-      throw new RuntimeException("unsupported option: " + name);
-    }
-  }
-  
-  private void checkProperty(String name) {
-    if(!propertySet.contains(name)) {
-      throw new RuntimeException("unsupported character property: " + name);
-    }
-  }
+  HUGE_NUMBER = 2147483647;
+  insideCharacterClass = false;
 }
 
 /*****************************************************************************************
@@ -202,8 +129,7 @@ tokens {
 // are copied from the official PCRE man pages (last updated: 10 January 
 // 2012): http://www.pcre.org/pcre.txt
 parse
- : regex EOF -> regex
-   //(t=. {System.out.printf("\%-25s '\%s'\n", tokenNames[$t.type], $t.text);})* EOF
+ : regex EOF -> regex EOF
  ;
 
 // ALTERNATION
@@ -660,7 +586,7 @@ octal_char
  : ( Backslash (D0 | D1 | D2 | D3) octal_digit octal_digit
    | Backslash octal_digit octal_digit                     
    )
-   -> LITERAL[String.valueOf((char)Integer.parseInt($text.substring(1), 8))]
+   -> LITERAL["" + parseInt($text.substring(1), 8)]
  ;
 
 octal_digit
@@ -706,8 +632,8 @@ letter
 //
 //         \x         where x is non-alphanumeric is a literal x
 //         \Q...\E    treat enclosed characters as literal
-Quoted      : '\\' NonAlphaNumeric {setText($text.substring(1));};
-BlockQuoted : '\\Q' .* '\\E'       {setText($text.substring(2, $text.length() - 2));};
+Quoted      : '\\' NonAlphaNumeric;
+BlockQuoted : '\\Q' .* '\\E';
 
 // CHARACTERS
 //
@@ -721,25 +647,16 @@ BlockQuoted : '\\Q' .* '\\E'       {setText($text.substring(2, $text.length() - 
 //         \ddd       character with octal code ddd, or backreference
 //         \xhh       character with hex code hh
 //         \x{hhh..}  character with hex code hhh..
-BellChar       : '\\a' {setText("\u0007");};
-ControlChar    : '\\c' ASCII {setText($ASCII.text);};
-EscapeChar     : '\\e' {setText(String.valueOf((char)0x1B));};
-FormFeed       : '\\f' {setText(String.valueOf((char)0x0C));};
-NewLine        : '\\n' {setText("\n");};
-CarriageReturn : '\\r' {setText("\r");};
-Tab            : '\\t' {setText("\t");};
+BellChar       : '\\a';
+ControlChar    : '\\c' ASCII;
+EscapeChar     : '\\e';
+FormFeed       : '\\f';
+NewLine        : '\\n';
+CarriageReturn : '\\r';
+Tab            : '\\t';
 Backslash      : '\\';
-HexChar        : '\\x' ( HexDigit HexDigit                   
-                         {
-                           int hex = Integer.valueOf($text.substring(2), 16);
-                           setText(Character.valueOf((char)hex).toString());
-                         }
+HexChar        : '\\x' ( HexDigit HexDigit
                        | '{' HexDigit HexDigit HexDigit+ '}' 
-                         {
-                           int hex = Integer.valueOf($text.substring(3, $text.length() - 1), 16);
-                           char[] utf16 = Character.toChars(hex);
-                           setText(new String(utf16));
-                         }
                        );
 
 // CHARACTER TYPES
@@ -773,8 +690,8 @@ NotDecimalDigit         : '\\D';
 HorizontalWhiteSpace    : '\\h';
 NotHorizontalWhiteSpace : '\\H';
 NotNewLine              : '\\N';
-CharWithProperty        : '\\p{' UnderscoreAlphaNumerics '}' {checkProperty($UnderscoreAlphaNumerics.text);};
-CharWithoutProperty     : '\\P{' UnderscoreAlphaNumerics '}' {checkProperty($UnderscoreAlphaNumerics.text);};
+CharWithProperty        : '\\p{' UnderscoreAlphaNumerics '}';
+CharWithoutProperty     : '\\P{' UnderscoreAlphaNumerics '}';
 NewLineSequence         : '\\R';
 WhiteSpace              : '\\s';
 NotWhiteSpace           : '\\S';
@@ -814,8 +731,8 @@ CharacterClassStart  : '[';
 CharacterClassEnd    : ']';
 Caret                : '^';
 Hyphen               : '-';
-POSIXNamedSet        : '[[:' AlphaNumerics ':]]' {checkNamedSet($AlphaNumerics.text);};
-POSIXNegatedNamedSet : '[[:^' AlphaNumerics ':]]' {checkNamedSet($AlphaNumerics.text);};
+POSIXNamedSet        : '[[:' AlphaNumerics ':]]';
+POSIXNegatedNamedSet : '[[:^' AlphaNumerics ':]]';
 
 QuestionMark : '?';
 Plus         : '+';

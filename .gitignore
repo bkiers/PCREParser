@@ -4,9 +4,5 @@
 
 # generated files
 *.tokens
-PCRELexer.java
-PCREParser.java
-
-# binaries
-build/
-target/
+PCRELexer.js
+PCREParser.js

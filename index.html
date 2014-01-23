@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <script type="text/javascript" src="antlr3-all-min.js"></script>
+    <script type="text/javascript" src="PCRELexer.js"></script>
+    <script type="text/javascript" src="PCREParser.js"></script>
+
+    <style type="text/css">
+      #tree {
+        padding: 20px;
+        font-family: Monospace;
+      }
+      .leaf {
+        font-weight: bold; 
+        font-size: 130%;
+      }
+    </style>
+
+    <script type="text/javascript">
+
+    function init() {
+      document.getElementById("parse").onclick = parseRegex;
+    }
+
+    function parseRegex() {
+      document.getElementById("tree").innerHTML = "";
+      var regex = document.getElementById("regex").value;
+      if(regex) {
+        var lexer = new PCRELexer(new org.antlr.runtime.ANTLRStringStream(regex));
+        var parser = new PCREParser(new org.antlr.runtime.CommonTokenStream(lexer));
+        var root = parser.parse().getTree();
+        printTree(root, 0);
+      }
+      else {
+        document.getElementById("regex").value = "enter a regex here first"; 
+      }
+    }
+
+    function printTree(root, indent) {
+      if(!root) return;
+      for(var i = 0; i < indent; i++) {
+        document.getElementById("tree").innerHTML += ".&nbsp;";
+      }
+      var n = root.getChildCount();
+      if(n == 0) {
+        document.getElementById("tree").innerHTML += "<span class=\"leaf\">" + root + "</span><br />";
+      }
+      else {
+        document.getElementById("tree").innerHTML += root + "<br />";
+      }
+      for(i = 0; i < n; i++) {
+        printTree(root.getChild(i), indent + 1);  
+      }
+    }
+
+    </script>
+  </head>
+<body onload="init()">
+  <input id="regex" type="text" size="50" />
+  <button id="parse">parse</button>
+  <div id="tree"></div>
+</body>
+</html>
