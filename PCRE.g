@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2012 by Bart Kiers
+ * Copyright (c) 2012-2014 by Bart Kiers
+ *
+ * The MIT License
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -99,6 +101,7 @@ tokens {
   OPTIONS_UTF16;
   OR;
   OVERALL_RECURSION_CONDITION;
+  PCRE;
   POSSESSIVE;
   QUANTIFIER;
   RANGE;
@@ -129,7 +132,7 @@ tokens {
 // are copied from the official PCRE man pages (last updated: 10 January 
 // 2012): http://www.pcre.org/pcre.txt
 parse
- : regex EOF -> regex EOF
+ : regex EOF -> ^(PCRE regex)
  ;
 
 // ALTERNATION
@@ -265,10 +268,10 @@ backreference_or_octal
 //
 //         (?>...)         atomic, non-capturing group
 capture
- : '(' {addNumberedMatchGroup(retval);} '?' '<' name '>' {addNamedMatchGroup($name.text, retval);} regex ')'     -> ^(NAMED_CAPTURING_GROUP_PERL name regex)
- | '(' {addNumberedMatchGroup(retval);} '?''\'' name '\'' {addNamedMatchGroup($name.text, retval);} regex ')'    -> ^(NAMED_CAPTURING_GROUP_PERL name regex) 
- | '(' {addNumberedMatchGroup(retval);} '?' 'P' '<' name '>' {addNamedMatchGroup($name.text, retval);} regex ')' -> ^(NAMED_CAPTURING_GROUP_PYTHON name regex)
- | '(' {addNumberedMatchGroup(retval);} regex ')'                                                                -> ^(CAPTURING_GROUP regex)
+ : '(' '?' '<' name '>' regex ')'     -> ^(NAMED_CAPTURING_GROUP_PERL name regex)
+ | '(' '?''\'' name '\'' regex ')'    -> ^(NAMED_CAPTURING_GROUP_PERL name regex)
+ | '(' '?' 'P' '<' name '>' regex ')' -> ^(NAMED_CAPTURING_GROUP_PYTHON name regex)
+ | '(' regex ')'                      -> ^(CAPTURING_GROUP regex)
  ;
 
 non_capture
@@ -690,8 +693,8 @@ NotDecimalDigit         : '\\D';
 HorizontalWhiteSpace    : '\\h';
 NotHorizontalWhiteSpace : '\\H';
 NotNewLine              : '\\N';
-CharWithProperty        : '\\p{' UnderscoreAlphaNumerics '}';
-CharWithoutProperty     : '\\P{' UnderscoreAlphaNumerics '}';
+CharWithProperty        : '\\p{' UnderscoreAlphaNumerics '}'; // TODO check for valid property
+CharWithoutProperty     : '\\P{' UnderscoreAlphaNumerics '}'; // TODO check for valid property
 NewLineSequence         : '\\R';
 WhiteSpace              : '\\s';
 NotWhiteSpace           : '\\S';
@@ -731,8 +734,8 @@ CharacterClassStart  : '[';
 CharacterClassEnd    : ']';
 Caret                : '^';
 Hyphen               : '-';
-POSIXNamedSet        : '[[:' AlphaNumerics ':]]';
-POSIXNegatedNamedSet : '[[:^' AlphaNumerics ':]]';
+POSIXNamedSet        : '[[:' AlphaNumerics ':]]'; // TODO check for valid set
+POSIXNegatedNamedSet : '[[:^' AlphaNumerics ':]]'; // TODO check for valid set
 
 QuestionMark : '?';
 Plus         : '+';
