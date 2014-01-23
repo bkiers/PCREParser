@@ -1,5 +1,7 @@
 ## PCREParser
 
+The PCRE grammar generating JavaScript lexer- and parser source files.
+
 To generate the lexer and parser, execute the following command on your terminal:
 
 ```
