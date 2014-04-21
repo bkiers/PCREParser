@@ -2,11 +2,7 @@
 .idea/
 *.iml
 
-# generated files
-*.tokens
-PCRELexer.java
-PCREParser.java
-
 # binaries
 build/
 target/
+*.class

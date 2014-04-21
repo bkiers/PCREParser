@@ -7,7 +7,7 @@ compatible regular expressions) and produce an abstract syntax tree (AST) of suc
 
 ### Download/get library
 
-To get the library, checkout the source and run the `jar` target from the Ant build file, or 
+To get the library, checkout the project and run `mvn clean install`, or
 [download](https://github.com/bkiers/PCREParser/blob/master/PCREParser-0.3.1.jar) the jar.
 
 You can also try the parser online: [pcreparser.appspot.com](http://pcreparser.appspot.com/)
