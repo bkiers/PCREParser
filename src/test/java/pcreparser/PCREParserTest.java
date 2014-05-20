@@ -1107,7 +1107,7 @@ public class PCREParserTest {
         String source = "abc)";
         PCREParser parser = getParser(source);
 
-        PCREParser.letters_return value = parser.letters();
+        PCREParser.alpha_nums_return value = parser.alpha_nums();
         CommonTree tree = (CommonTree)value.getTree();
 
         assertThat(tree.getChildCount(), is(3));

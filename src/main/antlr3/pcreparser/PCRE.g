@@ -676,11 +676,11 @@ digit
  ;
 
 name
- : letters -> NAME[$letters.text]
+ : alpha_nums -> NAME[$alpha_nums.text]
  ;
 
-letters
- : (letter | Underscore)+
+alpha_nums
+ : (letter | Underscore) (letter | Underscore | digit)*
  ;
 
 non_close_parens
