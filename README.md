@@ -2,8 +2,10 @@
 
 ### Introduction
 
-An ANTLR grammar that generates a parser able to parse [PCRE](http://www.pcre.org/pcre.txt) (Perl 
+An ANTLR 3 grammar that generates a parser able to parse [PCRE](http://www.pcre.org/pcre.txt) (Perl 
 compatible regular expressions) and produce an abstract syntax tree (AST) of such expressions.
+
+For an ANTLR 4 grammar, have a look here: https://github.com/bkiers/pcre-parser
 
 For a JavaScript version, checkout [the js branch](https://github.com/bkiers/PCREParser/tree/js).
 
