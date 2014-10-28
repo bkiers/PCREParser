@@ -5,10 +5,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.big-o</groupId>
-    <artifactId>pcre-parser</artifactId>
+    <artifactId>PCREParser</artifactId>
     <packaging>jar</packaging>
-    <version>0.1.0</version>
-    <name>pcre-parser</name>
+    <version>0.3.2</version>
+    <name>PCREParser</name>
 
     <properties>
         <antlr3.version>3.5</antlr3.version>
