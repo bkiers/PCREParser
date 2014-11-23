@@ -190,4 +190,4 @@ that has the following attributes:
 * `CommonTree#getChildren(): List`: a `java.util.List` of all child nodes/AST's
 * `CommonTree#getType(): int`: the token type of the AST (token types can be found as static `int`s in PCRELexer, once generated)
 * `CommonTree#getText(): String`: the text the token associated with this node matched during parsing
-* [...](http://www.antlr.org/api/Java/classorg_1_1antlr_1_1runtime_1_1tree_1_1_common_tree.html)
+* [the API](http://www.antlr3.org/api/Java/org/antlr/runtime/tree/CommonTree.html)
